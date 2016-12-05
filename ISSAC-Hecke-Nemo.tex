@@ -1,0 +1,70 @@
+\documentclass{sig-alternate-05-2015}
+\usepackage{paralist}
+
+\begin{document}
+\setcopyright{acmcopyright}
+\conferenceinfo{ISSAC 2017}{July 25--28, 2017, Kaiserslautern, Germany}
+
+\newtheorem{alg}{Algorithm}
+\newtheorem{definition}{Definition}
+\newtheorem{Assertion}{Assertion}
+
+\makeatletter
+\def\Ddots{\mathinner{\mkern1mu\raise\p@
+\vbox{\kern7\p@\hbox{.}}\mkern2mu
+\raise4\p@\hbox{.}\mkern2mu\raise7\p@\hbox{.}\mkern1mu}}
+\makeatother
+
+\title{Hecke/Nemo: Number Theory packages for the Julia programming language.}
+
+\numberofauthors{3}
+\author{
+\alignauthor Claus Fieker\\
+   \affaddr{Technische Universit\"{a}t Kaiserslautern}\\
+   \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
+   \affaddr{67653 Kaiserslautern, Germany}\\
+   \email{fieker@mathematik.uni-kl.de}
+\alignauthor William Hart\\
+   \affaddr{Technische Universit\"{a}t Kaiserslautern}\\
+   \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
+   \affaddr{67653 Kaiserslautern, Germany}\\
+   \email{goodwillhart@googlemail.com}
+\alignauthor Fredrik Johansson\\
+   \affaddr{Inria Bordeaux}\\
+   \affaddr{33400 Talence, France}\\
+   \email{fredrik.johansson@gmail.com}
+}
+
+\maketitle
+
+\begin{abstract}
+We introduce two new packages, Hecke and Nemo, written in the Julia programming language
+for basic arithmetic and number theory. We demonstrate that high performance generic
+algorithms can be implemented in Julia, without the need to resort to a low-level C
+implementation. We also describe the various Julia wrappers of existing C libraries
+such as Flint, Arb and Antic. We give examples of how to use Hecke and Nemo and discuss
+some of the algorithms that we have implemented to provide high performance basic
+arithmetic.
+\end{abstract}
+
+
+\section{Introduction}
+\begin{thebibliography}{99}
+
+\bibitem{magma}
+J. J. Cannon, W. Bosma (Eds.) {\em Handbook of Magma Functions}, Edition 2.13 (2006)
+
+\bibitem{mca} 
+J. von zur Gathen and J. Gerhard. {\em Modern Computer Algebra}. Cambridge University Press, 1999.
+
+\bibitem{flint}
+W. Hart {\em FLINT}, open-source C-library. \texttt{http://www.flintlib.org}
+
+\bibitem{ntl}
+V. Shoup {\em NTL}, open-source C++ library. \texttt{http://www.shoup.net/ntl/}
+
+\bibitem{sage}
+W. Stein {\em SAGE Mathematics Software}.  \texttt{http://www.sagemath.org}
+
+\end{thebibliography}
+\end{document}
