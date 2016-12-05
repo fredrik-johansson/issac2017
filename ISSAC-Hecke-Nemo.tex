@@ -1,5 +1,6 @@
 \documentclass{sig-alternate-05-2015}
 \usepackage{paralist}
+\usepackage{hyperref}
 
 \begin{document}
 \setcopyright{acmcopyright}
@@ -15,22 +16,30 @@
 \raise4\p@\hbox{.}\mkern2mu\raise7\p@\hbox{.}\mkern1mu}}
 \makeatother
 
-\title{Hecke/Nemo: Number Theory packages for the Julia programming language.}
+%\title{Hecke/Nemo: Number Theory packages for the Julia programming language}
+\title{Hecke/Nemo: computer algebra and number theory packages for the Julia programming language}
 
-\numberofauthors{3}
+\numberofauthors{4}
 \author{
 \alignauthor Claus Fieker\\
-   \affaddr{Technische Universit\"{a}t Kaiserslautern}\\
+   \affaddr{TU Kaiserslautern}\\
    \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
    \affaddr{67653 Kaiserslautern, Germany}\\
    \email{fieker@mathematik.uni-kl.de}
 \alignauthor William Hart\\
-   \affaddr{Technische Universit\"{a}t Kaiserslautern}\\
+   \affaddr{TU Kaiserslautern}\\
    \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
    \affaddr{67653 Kaiserslautern, Germany}\\
-   \email{goodwillhart@googlemail.com}
+   \email{goodwillhart@gmail.com}
+\alignauthor Tommy Hofmann\\
+   \affaddr{TU Kaiserslautern}\\
+   \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
+   \affaddr{67653 Kaiserslautern, Germany}\\
+   \email{thofmann@mathematik.uni-kl.de}
+\and
 \alignauthor Fredrik Johansson\\
-   \affaddr{Inria Bordeaux}\\
+   \affaddr{Inria Bordeaux \&}\\
+   \affaddr{Institut de Math\'{e}matiques de Bordeaux} \\
    \affaddr{33400 Talence, France}\\
    \email{fredrik.johansson@gmail.com}
 }
@@ -39,10 +48,11 @@
 
 \begin{abstract}
 We introduce two new packages, Hecke and Nemo, written in the Julia programming language
-for basic arithmetic and number theory. We demonstrate that high performance generic
+for computer algebra and number theory.
+We demonstrate that high performance generic
 algorithms can be implemented in Julia, without the need to resort to a low-level C
-implementation. We also describe the various Julia wrappers of existing C libraries
-such as Flint, Arb and Antic. We give examples of how to use Hecke and Nemo and discuss
+implementation. We also describe the various Julia wrappers of existing C/C++ libraries
+such as Flint, Arb, Antic and Singular. We give examples of how to use Hecke and Nemo and discuss
 some of the algorithms that we have implemented to provide high performance basic
 arithmetic.
 \end{abstract}
@@ -63,13 +73,15 @@ arithmetic.
 
 \section{Generic algorithms in Nemo}
 
-\section{Arb: arbitrary precision ball arithmetic}
+\section{Specific algorithms in Nemo}
 
-\section{Flint: number theory}
+\subsection{Flint: number theory}
 
-\section{Antic: algebraic number fields}
+\subsection{Arb: arbitrary precision ball arithmetic}
 
-\section{Singular: commutative algebra}
+\subsection{Antic: algebraic number fields}
+
+\subsection{Singular: commutative algebra}
 
 \section{Future directions}
 
@@ -85,13 +97,20 @@ J. J. Cannon, W. Bosma (Eds.) {\em Handbook of Magma Functions}, Edition 2.13 (2
 J. von zur Gathen and J. Gerhard. {\em Modern Computer Algebra}. Cambridge University Press, 1999.
 
 \bibitem{flint}
-W. Hart {\em FLINT}, open-source C-library. \texttt{http://www.flintlib.org}
+W. Hart, F. Johansson and S. Pancratz. {\em FLINT}, open-source C-library. \url{http://www.flintlib.org}
+
+\bibitem{arb}
+F. Johansson. {\em Arb}, open-source C-library. \url{http://arblib.org}
 
 \bibitem{ntl}
-V. Shoup {\em NTL}, open-source C++ library. \texttt{http://www.shoup.net/ntl/}
+V. Shoup {\em NTL}, open-source C++ library. \url{http://www.shoup.net/ntl/}
 
 \bibitem{sage}
-W. Stein {\em SAGE Mathematics Software}.  \texttt{http://www.sagemath.org}
+W. Stein {\em SAGE Mathematics Software}.  \url{http://www.sagemath.org}
+
+\bibitem{julia} J. Bezanson, A. Edelman, S. Karpinski and V. B. Shah. {\em Julia: A fresh approach to numerical computing}. \url{https://arxiv.org/abs/1411.1607}
+
+\bibitem{singular} W. Decker, G. M. Greuel, G. Pfister and H. Sch\"onemann. {\em Singular} --- A computer algebra system for polynomial computations. \url{http://www.singular.uni-kl.de}
 
 \end{thebibliography}
 \end{document}
