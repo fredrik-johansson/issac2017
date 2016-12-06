@@ -101,7 +101,7 @@ The benefits of Julia include:
 \item Jupyter support (for web based notebooks)
 \end{itemize}
 
-\section{Modelling mathematical domains in Julia}
+\section{Modelling domains in Julia}
 
 Julia provides two levels of types that we make use of abstract types and concrete types.
 Concrete types are equivalent to the types that appear in languages such as Java, C or C++,
@@ -131,7 +131,11 @@ for and all other kinds of domains in Nemo.
 
 The diagram below shows the abstract type hierarchy in Nemo.
 
-\includegraphics{types.png}
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.37]{types.png}
+\caption{The Nemo abstract type hierarchy}
+\end{figure}
 
 Naively, one may expect that specific mathematical domains in Nemo/Hecke can be modeled as types
 and their elements as objects of the given type. But there are various reasons why this is not a
