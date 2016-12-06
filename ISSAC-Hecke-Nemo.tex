@@ -1,6 +1,7 @@
 \documentclass{sig-alternate-05-2015}
 \usepackage{paralist}
 \usepackage{hyperref}
+\DeclareMathOperator{\lcm}{lcm}
 
 \begin{document}
 \setcopyright{acmcopyright}
@@ -181,6 +182,147 @@ appended if it is desirable to retain more information at the Julia level than t
 \section{Hecke: algebraic number theory in Julia}
 
 \section{Generic algorithms in Nemo}
+
+Many high level algorithms in number theory and computer algebra rely on
+the efficient implementation of fundamental algorithms. Here we describe
+some of the algorithms implemented in Nemo.
+
+Firstly, we have implemented a number of linear algebra improvements for
+matrices over generic commutative rings.
+
+It is well known that for some rings, standard linear algebra algorithms
+suffer from coefficient explosion making them impractical to use. Fraction
+free algorithms often improve this behaviour, sometimes allowing computations
+to be carried out that would essentially never complete with more naive
+approaches. For example, fraction free LU decomposition and Gaussian
+elimination are well-known.
+
+One place where we have been able to use this strategy is the computation
+of the characteristic polynomial. We have adapted the well-known 1937 method
+of Danilevsky for computing the characteristic polynomial into a fraction-free
+version.
+
+Danilevsky's method works by applying similarity transforms to reduce the
+matrix to Frobenius form. Normally such computations are computed over a
+field, however each of the outer iterations in the algorithm introduce only
+a single denominator. Scaling by this denominator allows us to avoid
+fractions.
+
+Of course this then introduces the problem that the entries become larger
+as the algorithm proceeds because of the scaling. However, conveniently
+it is possible to prove that the introduced scaling factor can be removed 
+one step later in the algorithm. This is an exact division and doesn't
+lead to denominators.
+
+Removing such a factor has to be done in a way that respects the
+similarity transforms. We achieve this by making two passes over the matrix
+to remove the common factor.
+
+Next we describe an algorithm we have implemented for efficient
+computation of minimal polynomial of an $n\times n$ integer matrix $M$.
+
+A standard approach to this problem is known as ``spinning''. 
+
+We first describe this idea for matrices over a field $K$, where we have
+in mind the field $\mathbb{Z}/p\mathbb{Z}$ for a prime $p$.
+
+The main idea is to think of $M$ as a linear operator on an $n$-dimensional
+$K$-vector space $V$ and to write $V$ as a sum of invariant subspaces, 
+$V = W_1 + W_2 + \cdots + W_k$. If the restriction of $M$ to $W_i$ has
+minimum polynomial $f_i$ then the minimum polynomial of $M$ is
+$\lcm(f_1, f_2, \ldots, f_k)$.
+
+To generate such subspaces one construct so-called Krylov sequences. Given
+a vector $v \in V$ the Krylov subspace associated to $v$ is the linear
+subspace spanned by $\{v, Mv, M^2v, \ldots\}$.
+
+One way to get the minimum polynomial of $M$ heuristically is to choose
+random vectors $v$, compute the associated Krylov subspaces and take their
+minimal polynomials $f_i$. When the least common multiple of such minimal
+polynomials stabilises, we have with high probability computed the minimal
+polynomial of $M$.
+
+However, a proof of termination can also be given as follows. Suppose that
+we have vectors $v_1, v_2, \ldots, v_k$ such that their associated Krylov
+subspaces $W_1, W_2, \ldots, W_n$ are pairwise distinct and that their
+sum is $V$. Then the least common multiple of their minimal polynomials is
+the minimal polynomial of $M$.
+
+Instead of choosing random vectors $v_i$, our algorithm starts with
+$v_1 = e_1 = (1, 0, 0, \ldots, 0)$ and at each step chooses $v_i$ to be
+the first standard basis vector $e_j$ that is linearly independent of the
+Krylov subspaces $W_1, W_2, \ldots, W_{i-1}$ computed so far.
+
+We keep track of which standard basis vectors are independent by
+incrementally reducing a matrix $B$ whose rows consist of all the
+linearly independent vectors from the Krylov sequences computed so
+far.
+
+Any column without a pivot in this reduced matrix $B$ corresponds to a
+standard basis vector which is independent of the Krylov subspaces
+computed so far.
+
+Once the rank of this incrementally reduced matrix $B$ reaches $n$, the sum
+of the Krylov subspaces we have computed is $V$ and we are done.
+
+In order to compute the minimum polynomial of a matrix $M$ over $\mathbb{Z}$,
+we make use of a multimodular approach, reducing the matrix $M$ modulo many
+small primes $p$ and applying the method described above. We then combine
+the minimal polynomials modulo the various primes $p$ using Chinese
+remaindering.
+
+The only difficulty is knowing when to stop. Heuristically this happens
+when the Chinese remaindering stabilises. Whilst bounds on the number of
+primes required do exist, e.g. based on Ovals of Cassini, the bounds are
+typically extremely pessimistic. We prefer stop as soon as the Chinese
+remaindering stabilises, but we require a proof of termination. 
+
+It is unfortunately way too expensive to simply evaluate the minimum
+polynomial $f$ at the matrix $M$ to see if it is zero, since this requires
+taking powers of the matrix $M$, which requires $O(n^4)$ operations over
+$\mathbb{Z}$ in total, in the worst case.
+
+In order to give a proof of termination, we instead allow a small amount of
+information to leak from the modulo $p$ minimal polynomial computations.
+Namely, we wish to know which standard basis vectors were used as
+generators of the Krylov subspaces modulo $p$. We observe that these are
+almost always the same standard basis vectors for all primes $p$ due to the
+deterministic way we choose these as the first standard basis vector not
+in the sum of the Krylov subspaces computed so far. 
+
+Combining all the generators of the Krylov subspaces for all the primes $p$
+then gives us a small set of generators $v_i$ for the Krylov subspaces over
+$\mathbb{Z}$ (not necessarily a minimal set).
+
+Suppose that  $f$ is a purported minimum polynomial that is believed
+heuristically to be correct, since the Chinese remaindering has stabilised.
+On average, it is relatively cheap to compute $f(M)v_i$ for each such
+vector $v_i$. If $f(M)v_i = 0$ for each of the vectors $v_i$ then $f$ is
+in fact the minimal polynomial.
+
+In the worst case this algorithm still requires $O(n^4)$ operations, but
+this is far from the average case, even when the minimal polynomial is not
+the characteristic polynomial.
+
+Of course we know that the associated Krylov subspaces $W_i$ sum to $V$
+because they do so modulo $p$.
+
+We have been informed by personal communication that the algorithm used by
+Magma (\cite{magma}) also uses spinning, however it uses a $p$-adic
+approach over $\mathbb{Z}$. Unfortunately we have not been able to find a
+publication outlining their method.
+
+In practice our multimodular algorithm seems to just outperform Magma on the
+examples we have tried, including matrices with minimum polynomial smaller 
+than the characteristic polynomial.
+
+A generic version of this algorithm is implemented in Julia code in Nemo, and
+an efficient version over $\mathbb{Z}$ using the Chinese Remaindering trick
+is implemented in Flint and made available in Nemo.
+
+We found it extremely convenient to prototype the generic version first in
+Nemo. It we found it quite easy to implement a C version from the Julia
+implementation.
 
 \section{Specific algorithms in Nemo}
 
