@@ -214,6 +214,12 @@ which creates no new objects.
 Naturally, the idea is to limit this less readable construct to
 critical inner loops of operations such as polynomial
 and matrix multiplication.
+Using this in-place update in the main loop of univariate polynomial
+multiplication saves a whole factor 6.7 on the Fateman benchmark
+$f \cdot (f+1)$ where
+$f = (1 + x + y + z + t)^{30}$, evaluated over the nested univariate
+ring $\mathbb{Z}[x][y][z][t]$. This is an extreme example, and
+the typical gain is more modest.
 
 \subsection{Polynomial algorithms}
 
