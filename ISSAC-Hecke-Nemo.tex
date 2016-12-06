@@ -60,12 +60,117 @@ arithmetic.
 
 \section{Introduction}
 
+Nemo is a computer algebra package for the Julia programming language. The eventual aim is
+to provide highly performant Commutative Algebra, Number Theory and Group Theory routines.
 
+Nemo consists of two parts. The first part consists of wrappers of specialised C/C++
+libraries: Flint \cite{flint}, Arb \cite{Arb}, Antic \cite{Antic} and Singular
+\cite{singular}.
 
+The second part consists of implementations of generic algorithms and mathematical data
+structures in the Julia language. So far the fully recursive constructions include
+Univariate polynomial rings, Power series rings, Residue rings (modulo principal ideals),
+Fraction fields, Matrices and more recently multivariate polynomials with a sparse
+distributed representation.
 
-\section{Example}
+\subsection{The Julia programming language}
 
-\section{The Julia programming language}
+Julia \cite{julia} is a sophisticated, modern programming language which is designe
+to be both performant and flexible. It was written for technical computing with a
+focus on numerics. However, it has found widespread use for many general purpose
+applications, largely due to its innovative type system, dispatch mechanism, JIT
+compilation and metaprogramming capabilities.
+
+The first public version of Julia appeared in 2012. 
+
+The benefits of Julia include:
+
+\begin{itemize}
+\item Familiar imperative syntax
+\item Just-In-Time compilation
+\item interactive console
+\item Parametric types
+\item Powerful metaprogramming facilities
+\item Operator overloading
+\item Multiple dispatch
+\item Efficient native C interface
+\item Experimental C++ interface
+\item Dynamic type inference
+\item Able to be embedded in C programs
+\item High performance collection types (dictionaries, iterators, arrays, etc.)
+\item Jupyter support (for web based notebooks)
+\end{itemize}
+
+\section{Modelling mathematical domains in Julia}
+
+Julia provides two levels of types that we make use of abstract types and concrete types.
+Concrete types are equivalent to the types that appear in languages such as Java, C or C++,
+etc.
+
+Abstract types can be thought of as collections of types. They are used when writing generic
+functions that should work for any type in the given collection.
+
+To write a generic function that accepts any type in a given collection of types, we first
+create an abstract type. Then we create the individual concrete types that belong to that
+abstract type. A generic function can then be constructed with a type parameter, T
+say, similar to a template parameter in C++. The main difference is that we can specify
+which abstract type our type parameter T must belong to.
+
+In Julia, the symbol <: is used to specify that a given type belongs to a given abstract type.
+For example the built-in Julia type Int64 for 64 bit machine integers belongs to the Julia
+abstract type Integer.
+
+Abstract types in Julia can form a hierarchy. For example, the Nemo.Field abstract type belongs
+to the Nemo.Ring abstract type. An object representing a field in Nemo has type belonging to
+Nemo.Field. But because we define the inclusion Nemo.Field <: Nemo.Ring, the type of such an
+object also belongs to Nemo.Ring. This means that any generic function in Nemo which is designed
+to work with ring objects will also work with field objects.
+
+In Nemo/Hecke we distinguish between the elements of a field, and the field itself, and similarly
+for and all other kinds of domains in Nemo. 
+
+The diagram below shows the abstract type hierarchy in Nemo.
+
+\includegraphics{types.png}
+
+Naively, one may expect that specific mathematical domains in Nemo/Hecke can be modeled as types
+and their elements as objects of the given type. But there are various reasons why this is not a
+good model.
+
+As an example, consider the ring $R = \mathbb{Z}/n\mathbb{Z}$. If we were to model the ring $R$
+as a type, then the type would need to contain information about the modulus $n$. This is not
+possible in Julia if $n$ is an object, e.g. a multiprecision integer.
+
+Putting such information in types is also not desirable. Julia dispatches on type, and each time
+we call a generic function with different types, a new version of the function is compiled by the
+JIT compiler. This would result in very poor performance if we were writing a multimodular
+algorithm, say. In such an algorithm many rings $\mathbb{Z}/n\mathbb{Z}$ may be needed, and
+recompilation would be triggered for each distinct $n$.
+
+For this reason, the modulus $n$ needs to be attached to the elements of the ring, not to the type
+associated with those elements.
+
+The way we deal with this is to have special (singleton) objects, known as parent objects, that act
+like types, but are in fact ordinary Julia objects. As ordinary objects, parents can contain
+arbitrary information, such as the modulus in $\mathbb{Z}/n\mathbb{Z}$. Each element in the ring
+$\mathbb{Z}/n\mathbb{Z}$ then contains a pointer to the relevant parent object.
+
+This model of mathematical parent objects is taken from SageMath which in turn followed the Magma
+computer algebra system.
+
+Julia allows ordinary objects to be made callable. We make use of the facility to write coercions
+and constructors for elements of mathematical domains in Nemo/Hecke. For example, the following
+code constructs $a = 3 \pmod{7}$.
+
+\begin{verbatim}
+R = ResidueRing(ZZ, 7)
+a = R(3)
+\end{verbatim}
+
+We also make use of the parent object system to encode information such as context objects needed
+by C libraries. As Julia objects can have precisely the same bit representation as native C objects,
+parent objects can be passed directly to C functions. Additional fields in these objects can safely
+appended if it is desirable to retain more information at the Julia level than the C/C++ level. 
 
 \section{Nemo: basic arithmetic in Julia}
 
