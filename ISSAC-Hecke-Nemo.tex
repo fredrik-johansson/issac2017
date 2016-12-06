@@ -185,10 +185,8 @@ appended if it is desirable to retain more information at the Julia level than t
 
 Many high level algorithms in number theory and computer algebra rely on
 the efficient implementation of fundamental algorithms. Here we describe
-some of the algorithms implemented in Nemo.
-
-Firstly, we have implemented a number of linear algebra improvements for
-matrices over generic commutative rings.
+some of the linear algebra improvements for matrices over generic commutative
+rings that we have implemented in Nemo.
 
 It is well known that for some rings, standard linear algebra algorithms
 suffer from coefficient explosion making them impractical to use. Fraction
@@ -321,7 +319,7 @@ an efficient version over $\mathbb{Z}$ using the Chinese Remaindering trick
 is implemented in Flint and made available in Nemo.
 
 We found it extremely convenient to prototype the generic version first in
-Nemo. It we found it quite easy to implement a C version from the Julia
+Nemo. We then found it quite easy to implement a C version from the Julia
 implementation.
 
 \section{Specific algorithms in Nemo}
