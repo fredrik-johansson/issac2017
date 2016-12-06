@@ -77,7 +77,80 @@ arithmetic.
 
 \subsection{Flint: number theory}
 
+We envisioned Flint as a set of implementations for specific rings,
+but now we realize that it makes sense to use it only for specific
+rings where there is some trick
+
+For example, there seems to be no need to have a Flint type for
+matrices over $\left(\mathbb{Z}/n\mathbb{Z}\right)[x]$.
+
+Julia has informed development - for example: don't want to just commit suicide
+on bad input
+
+Ground rings $\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{Z}/n\mathbb{Z}$,
+$\mathbb{F}_q, \mathbb{Q}_p$
+
+dense univariate polynomials, dense matrices
+and power series
+
+some flint types require context objects; parent objects hold context objects
+
+algorithms prototyped in Julia, then rewritten in C
+
+showed the way for multivariate polynomials 
+
 \subsection{Arb: arbitrary precision ball arithmetic}
+
+Viable approaches to represent elements of $\mathbb{R}$ and $\mathbb{C}$
+include floating-point approximations,
+intervals, and lazy bit streams (e.g.\ using a finite-precision
+approximation together with an exact symbolic DAG
+to allow re-computing the approximation to higher precision).
+
+Nemo includes wrapper code for Arb, which implements real numbers as
+arbitrary-precision midpoint-radius intervals (balls) $[m \pm r]$
+and complex numbers as rectangular boxes $[a \pm r_1]$ + $[b \pm r_2] i$.
+
+While alternative implementations of $\mathbb{R}$ and $\mathbb{C}$
+may be added to Nemo in the future, we envision Arb as a reasonable default,
+and we have used it with good success (see Hecke).
+
+For many computer algebra algorithms, the error analysis
+necessary to guarantee correct results with floating-point arithmetic
+becomes impractical to do by hand.
+Interval arithmetic solves this problem by effectively making
+error analysis automatic.
+
+With arbitrary-precision interval arithmetic, a form of
+coarse-grained lazy evaluation is possible: the user can
+try a computation with some tentative precision $p$ and restart
+with precision $2p$ if that fails. The precision can be set
+optimally when a good estimate for the minimal
+required~$p$ is available; that is, the intervals
+can be used as if they were plain floating-point numbers, and the automatic
+error bounds simply provide a certificate.
+
+A lazy representation for single numbers would be more convenient in some
+applications,
+but also probably slower (and less space-efficient) due to storing DAGs.
+Implementing lazy numbers on top of Arb in Julia
+would be an interesting future project.
+
+The midpoint-radius representation used by Arb is particularly efficient
+at high precision,
+since low precision is sufficient for the radii, which means that
+speed and memory efficiency is close to the optimum possible
+with plain arbitrary-precision floating-point arithmetic.
+Like Flint, Arb systematically uses asymptotically fast algorithms
+for operations such as polynomial multiplication, with tuning
+for different problem sizes.
+
+
+ArbField, AcbField
+
+polynomials, matrices
+
+also transcendental functions
 
 \subsection{Antic: algebraic number fields}
 
