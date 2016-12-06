@@ -187,16 +187,58 @@ appended if it is desirable to retain more information at the Julia level than t
 \section{Generic algorithms in Nemo}
 
 Many high level algorithms in number theory and computer algebra rely on
-the efficient implementation of fundamental algorithms. Here we describe
+the efficient implementation of fundamental algorithms.
+
+\subsection{In-place operations}
+
+A consistent way to improve performance is to modify
+elements in-place instead of creating temporary objects
+(requiring object instantiation, copying data, and garbage collection).
+In-place operations are used pervasively in Flint (and one level below, in GMP/MPIR).
+Nemo objects are ostensibly immutable, but local mutation is
+acceptable while an object is being created,
+and Nemo provides
+unsafe in-place methods for this purpose.
+Thus, instead of writing
+\begin{verbatim}
+s += a * b
+\end{verbatim}
+which creates an object for \texttt{a * b}
+and then replaces \texttt{s} with yet another new object, we may
+create a scratch variable \texttt{t} with the same type as \texttt{a}, \texttt{b} and \texttt{s} and use
+\begin{verbatim}
+mul!(t, a, b)
+addeq!(s, t)
+\end{verbatim}
+which creates no new objects.
+Naturally, the idea is to limit this less readable construct to
+critical inner loops of operations such as polynomial
+and matrix multiplication.
+
+\subsection{Polynomial algorithms}
+
+pseudodivision
+
+quadratic resultant
+
+multinomial expansion?
+
+multivariate polynomials (pearce-monagan, mul, pseudodivision, exact division, powering, psr gcd - giac)
+
+\subsection{Matrix algorithms}
+
+Here we describe
 some of the linear algebra improvements for matrices over generic commutative
 rings that we have implemented in Nemo.
 
 It is well known that for some rings, standard linear algebra algorithms
-suffer from coefficient explosion making them impractical to use. Fraction
+suffer from coefficient explosion making them impractical to use.
+Over integral domains, fraction
 free algorithms often improve this behaviour, sometimes allowing computations
 to be carried out that would essentially never complete with more naive
-approaches. For example, fraction free LU decomposition and Gaussian
-elimination are well-known.
+approaches. For example, fraction free Gaussian elimination
+for LU decomposition, inverse, determinant and reduced row echelon form
+are well-known.
 
 One place where we have been able to use this strategy is the computation
 of the characteristic polynomial. We have adapted the well-known 1937 method
