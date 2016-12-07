@@ -1,5 +1,6 @@
 \documentclass{sig-alternate-05-2015}
 \usepackage{paralist}
+\usepackage{url}
 \usepackage{hyperref}
 \DeclareMathOperator{\lcm}{lcm}
 
@@ -17,8 +18,7 @@
 \raise4\p@\hbox{.}\mkern2mu\raise7\p@\hbox{.}\mkern1mu}}
 \makeatother
 
-%\title{Hecke/Nemo: Number Theory packages for the Julia programming language}
-\title{Hecke/Nemo: computer algebra and number theory packages for the Julia programming language}
+\title{Nemo/Hecke: computer algebra and number theory packages for the Julia programming language}
 
 \numberofauthors{4}
 \author{
@@ -48,7 +48,7 @@
 \maketitle
 
 \begin{abstract}
-We introduce two new packages, Hecke and Nemo, written in the Julia programming language
+We introduce two new packages, Nemo and Hecke, written in the Julia programming language
 for computer algebra and number theory.
 We demonstrate that high performance generic
 algorithms can be implemented in Julia, without the need to resort to a low-level C
@@ -62,45 +62,40 @@ arithmetic.
 \section{Introduction}
 
 Nemo is a computer algebra package for the Julia programming language. The eventual aim is
-to provide highly performant Commutative Algebra, Number Theory and Group Theory routines.
+to provide highly performant commutative algebra, number theory and group theory routines.
 
-Nemo consists of two parts. The first part consists of wrappers of specialised C/C++
-libraries: Flint \cite{flint}, Arb \cite{Arb}, Antic \cite{Antic} and Singular
-\cite{singular}.
-
-The second part consists of implementations of generic algorithms and mathematical data
+Nemo consists of two parts: wrappers of specialised C/C++
+libraries (Flint \cite{flint}, Arb \cite{arb}, Antic \cite{antic} and Singular
+\cite{singular}), and
+implementations of generic algorithms and mathematical data
 structures in the Julia language. So far the fully recursive constructions include
-Univariate polynomial rings, Power series rings, Residue rings (modulo principal ideals),
-Fraction fields, Matrices and more recently multivariate polynomials with a sparse
+univariate polynomial rings, power series rings, residue rings (modulo principal ideals),
+fraction fields, matrices and more recently multivariate polynomials with a sparse
 distributed representation.
 
 \subsection{The Julia programming language}
 
-Julia \cite{julia} is a sophisticated, modern programming language which is designe
-to be both performant and flexible. It was written for technical computing with a
+Julia \cite{julia} is a sophisticated, modern programming language which is designed
+to be both performant and flexible.
+The first public version of Julia appeared in 2012. 
+Julia was written for technical computing with a
 focus on numerics. However, it has found widespread use for many general purpose
 applications, largely due to its innovative type system, dispatch mechanism, JIT
 compilation and metaprogramming capabilities.
-
-The first public version of Julia appeared in 2012. 
-
 The benefits of Julia include:
 
 \begin{itemize}
-\item Familiar imperative syntax
-\item Just-In-Time compilation
-\item interactive console
-\item Parametric types
-\item Powerful metaprogramming facilities
-\item Operator overloading
-\item Multiple dispatch
-\item Efficient native C interface
-\item Experimental C++ interface
-\item Dynamic type inference
-\item Able to be embedded in C programs
-\item High performance collection types (dictionaries, iterators, arrays, etc.)
-\item Jupyter support (for web based notebooks)
+\item Familiar imperative syntax (like Python and Matlab), including support for operator overloading.
+\item An interactive console, as well as Jupyter support (for web based notebooks).
+\item Parametric types, multiple dispatch, and powerful metaprogramming facilities.
+\item Just-In-Time compilation, supported by dynamic type inference.
+\item Automatic memory management (garbage collection).
+\item An efficient native C interface, and more recently an experimental C++ interface.
+\item High performance collection types (dictionaries, iterators, arrays, etc.) and a powerful standard library.
 \end{itemize}
+
+Julia's JIT compilation allows fast performance for
+generic algorithms. (Contrast: Python?... Alternative: C++ templates?)
 
 \section{Modelling domains in Julia}
 
@@ -179,21 +174,126 @@ appended if it is desirable to retain more information at the Julia level than t
 
 \section{Nemo: basic arithmetic in Julia}
 
+We give a few benchmark problems as code examples.
+Additional benchmarks are available
+at \url{http://nemocas.org/benchmarks.html}.
+
+The following example computes a resultant
+in the ring $((\operatorname{GF}(17^{11})[y])/(y^3 + 3xy + 1))[z]$,
+demonstrating generic recursive rings and polynomial
+arithmetic. Flint is used for univariate polynomials over a finite field.
+
+\begin{verbatim}
+R, x = FiniteField(7, 11, "x")
+S, y = PolynomialRing(R, "y")
+T = ResidueRing(S, y^3 + 3x*y + 1)
+U, z = PolynomialRing(T, "z")
+
+f = (3y^2+y+x)*z^2 + ((x+2)*y^2+x+1)*z + 4x*y + 3
+g = (7y^2-y+2x+7)*z^2 + (3y^2+4x+1)*z + (2x+1)*y + 1
+
+s = f^12
+t = (s + g)^12
+resultant(s, t)
+\end{verbatim}
+
+This example takes 179907~s in SageMath~6.8, 82 s in Magma V2.21-4
+and 0.2 s in Nemo-0.4.
+
+Next, we compute the determinant of a random $80\times80$ matrix
+with entries in a cubic number field.
+This benchmark is designed to test generic linear algebra over a field
+where there is coefficient blowup. The number field arithmetic is
+provided by Antic.
+
+\begin{verbatim}
+QQx, x = PolynomialRing(QQ, "x")
+K, a = NumberField(x^3 + 3*x + 1, "a")
+M = MatrixSpace(K, 80, 80)()
+
+for i in 1:80
+ for j in 1:80
+   for k in 0:2
+     M[i, j] = M[i, j] + a^k * (rand(-100:100))
+   end
+ end
+end
+
+det(M)
+\end{verbatim}
+
+This takes 5893~s in SageMath~6.8, 21.9~s in Pari/GP~2.7.4, 5.3~s in Magma V2.21-4,
+and 2.4~s in Nemo-0.4.
+
 \section{Hecke: algebraic number theory in Julia}
 
 \section{Generic algorithms in Nemo}
 
 Many high level algorithms in number theory and computer algebra rely on
-the efficient implementation of fundamental algorithms. Here we describe
+the efficient implementation of fundamental algorithms.
+
+\subsection{Generic functions}
+
+Maybe talk about how they are defined and how type dispatch works here?
+
+\subsection{In-place operations}
+
+A consistent way to improve performance is to modify
+elements in-place, especially when making incremental updates
+to large, highly nested objects.
+In-place operations are used pervasively in Flint (and one level below, in GMP/MPIR).
+Nemo objects are ostensibly immutable, but local mutation is
+acceptable while an object is being created,
+and Nemo provides special methods for this purpose.
+For recursively constructed objects, the in-place methods work
+recursively down to and including the ground level C objects.
+Thus, instead of writing
+\begin{verbatim}
+s += a * b
+\end{verbatim}
+which creates an object for \texttt{a * b}
+and then replaces \texttt{s} with yet another new object, we may
+create a scratch variable \texttt{t} with the same type as \texttt{a}, \texttt{b} and \texttt{s} and use
+\begin{verbatim}
+mul!(t, a, b)
+addeq!(s, t)
+\end{verbatim}
+which creates no new objects and avoids making a copy of the data in \texttt{s}
+that is not being modified.
+Naturally, the idea is to limit this less readable construct to
+critical inner loops of operations such as polynomial
+and matrix multiplication.
+Using this in-place update in the main loop of univariate polynomial
+multiplication saves a whole factor 6.7 on the Fateman benchmark
+$f \cdot (f+1)$ where
+$f = (1 + x + y + z + t)^{30}$, evaluated over the nested univariate
+ring $\mathbb{Z}[x][y][z][t]$. This is an extreme example, and
+the typical gain is more modest.
+
+\subsection{Polynomial algorithms}
+
+pseudodivision
+
+quadratic resultant
+
+multinomial expansion?
+
+multivariate polynomials (pearce-monagan, mul, pseudodivision, exact division, powering, psr gcd - giac)
+
+\subsection{Matrix algorithms}
+
+Here we describe
 some of the linear algebra improvements for matrices over generic commutative
 rings that we have implemented in Nemo.
 
 It is well known that for some rings, standard linear algebra algorithms
-suffer from coefficient explosion making them impractical to use. Fraction
+suffer from coefficient explosion making them impractical to use.
+Over integral domains, fraction
 free algorithms often improve this behaviour, sometimes allowing computations
 to be carried out that would essentially never complete with more naive
-approaches. For example, fraction free LU decomposition and Gaussian
-elimination are well-known.
+approaches. For example, fraction free Gaussian elimination
+for LU decomposition, inverse, determinant and reduced row echelon form
+are well-known.
 
 One place where we have been able to use this strategy is the computation
 of the characteristic polynomial. We have adapted the well-known 1937 method
@@ -216,25 +316,26 @@ Removing such a factor has to be done in a way that respects the
 similarity transforms. We achieve this by making two passes over the matrix
 to remove the common factor.
 
+\subsubsection{Minimal polynomial}
+
 Next we describe an algorithm we have implemented for efficient
 computation of minimal polynomial of an $n\times n$ integer matrix $M$.
 
 A standard approach to this problem is known as ``spinning''. 
-
-We first describe this idea for matrices over a field $K$, where we have
+We first describe this idea for matrices over a field~$K$, where we have
 in mind the field $\mathbb{Z}/p\mathbb{Z}$ for a prime $p$.
 
 The main idea is to think of $M$ as a linear operator on an $n$-dimensional
 $K$-vector space $V$ and to write $V$ as a sum of invariant subspaces, 
 $V = W_1 + W_2 + \cdots + W_k$. If the restriction of $M$ to $W_i$ has
-minimum polynomial $f_i$ then the minimum polynomial of $M$ is
+minimal polynomial $f_i$ then the minimal polynomial of $M$ is
 $\lcm(f_1, f_2, \ldots, f_k)$.
 
-To generate such subspaces one construct so-called Krylov sequences. Given
+To generate such subspaces we construct so-called Krylov sequences. Given
 a vector $v \in V$ the Krylov subspace associated to $v$ is the linear
 subspace spanned by $\{v, Mv, M^2v, \ldots\}$.
 
-One way to get the minimum polynomial of $M$ heuristically is to choose
+One way to get the minimal polynomial of $M$ heuristically is to choose
 random vectors $v$, compute the associated Krylov subspaces and take their
 minimal polynomials $f_i$. When the least common multiple of such minimal
 polynomials stabilises, we have with high probability computed the minimal
@@ -263,7 +364,7 @@ computed so far.
 Once the rank of this incrementally reduced matrix $B$ reaches $n$, the sum
 of the Krylov subspaces we have computed is $V$ and we are done.
 
-In order to compute the minimum polynomial of a matrix $M$ over $\mathbb{Z}$,
+In order to compute the minimal polynomial of a matrix $M$ over $\mathbb{Z}$,
 we make use of a multimodular approach, reducing the matrix $M$ modulo many
 small primes $p$ and applying the method described above. We then combine
 the minimal polynomials modulo the various primes $p$ using Chinese
@@ -273,26 +374,26 @@ The only difficulty is knowing when to stop. Heuristically this happens
 when the Chinese remaindering stabilises. Whilst bounds on the number of
 primes required do exist, e.g. based on Ovals of Cassini, the bounds are
 typically extremely pessimistic. We prefer stop as soon as the Chinese
-remaindering stabilises, but we require a proof of termination. 
+remaindering stabilises, but we need a proof of termination. 
 
-It is unfortunately way too expensive to simply evaluate the minimum
+It is unfortunately way too expensive to simply evaluate the minimal
 polynomial $f$ at the matrix $M$ to see if it is zero, since this requires
 taking powers of the matrix $M$, which requires $O(n^4)$ operations over
 $\mathbb{Z}$ in total, in the worst case.
 
 In order to give a proof of termination, we instead allow a small amount of
-information to leak from the modulo $p$ minimal polynomial computations.
+information to leak from the modulo~$p$ minimal polynomial computations.
 Namely, we wish to know which standard basis vectors were used as
-generators of the Krylov subspaces modulo $p$. We observe that these are
-almost always the same standard basis vectors for all primes $p$ due to the
+generators of the Krylov subspaces modulo~$p$. We observe that these are
+almost always the same standard basis vectors for all primes~$p$ due to the
 deterministic way we choose these as the first standard basis vector not
 in the sum of the Krylov subspaces computed so far. 
 
-Combining all the generators of the Krylov subspaces for all the primes $p$
+Combining all the generators of the Krylov subspaces for all the primes~$p$
 then gives us a small set of generators $v_i$ for the Krylov subspaces over
 $\mathbb{Z}$ (not necessarily a minimal set).
 
-Suppose that  $f$ is a purported minimum polynomial that is believed
+Suppose that  $f$ is a purported minimal polynomial that is believed
 heuristically to be correct, since the Chinese remaindering has stabilised.
 On average, it is relatively cheap to compute $f(M)v_i$ for each such
 vector $v_i$. If $f(M)v_i = 0$ for each of the vectors $v_i$ then $f$ is
@@ -311,23 +412,22 @@ approach over $\mathbb{Z}$. Unfortunately we have not been able to find a
 publication outlining their method.
 
 In practice our multimodular algorithm seems to just outperform Magma on the
-examples we have tried, including matrices with minimum polynomial smaller 
+examples we have tried, including matrices with minimal polynomial smaller 
 than the characteristic polynomial.
 
 A generic version of this algorithm is implemented in Julia code in Nemo, and
-an efficient version over $\mathbb{Z}$ using the Chinese Remaindering trick
+an efficient version over $\mathbb{Z}$ using the Chinese remaindering trick
 is implemented in Flint and made available in Nemo.
-
 We found it extremely convenient to prototype the generic version first in
 Nemo. We then found it quite easy to implement a C version from the Julia
 implementation.
 
-\section{Specific algorithms in Nemo}
+\section{C/C++ wrappers in Nemo}
 
 \subsection{Flint: number theory}
 
 We envisioned Flint as a set of implementations for specific rings,
-but now we realize that it makes sense to use it only for specific
+but now we realise that it makes sense to use it only for specific
 rings where there is some trick
 
 For example, there seems to be no need to have a Flint type for
@@ -337,7 +437,7 @@ Julia has informed development - for example: don't want to just commit suicide
 on bad input
 
 Ground rings $\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{Z}/n\mathbb{Z}$,
-$\mathbb{F}_q, \mathbb{Q}_p$
+$\operatorname{GF}(q), \mathbb{Q}_p$
 
 dense univariate polynomials, dense matrices
 and power series
@@ -447,7 +547,7 @@ products are first accumulated and their sum can be reduced at the end of the do
 
 To facilitate this delayed reduction, all Antic number field elements are allocated with
 sufficient space to store a single product, rather the reduction of such a product.
- 
+
 \subsection{Singular: commutative algebra}
 
 \section{Future directions}
@@ -466,6 +566,9 @@ J. von zur Gathen and J. Gerhard. {\em Modern Computer Algebra}. Cambridge Unive
 \bibitem{flint}
 W. Hart, F. Johansson and S. Pancratz. {\em FLINT}, open-source C-library. \url{http://www.flintlib.org}
 
+\bibitem{antic}
+W. Hart, {\em ANTIC: Algebraic Number Theory in C}, Computeralgebra Rundbrief 56, Fachgruppe Computeralgebra, 2015. \url{http://www.fachgruppe-computeralgebra.de/data/CA-Rundbrief/car56.pdf}
+
 \bibitem{arb}
 F. Johansson. {\em Arb}, open-source C-library. \url{http://arblib.org}
 
@@ -473,7 +576,7 @@ F. Johansson. {\em Arb}, open-source C-library. \url{http://arblib.org}
 V. Shoup {\em NTL}, open-source C++ library. \url{http://www.shoup.net/ntl/}
 
 \bibitem{sage}
-W. Stein {\em SAGE Mathematics Software}.  \url{http://www.sagemath.org}
+W. Stein {\em SageMath Mathematics Software}.  \url{http://www.sagemath.org}
 
 \bibitem{julia} J. Bezanson, A. Edelman, S. Karpinski and V. B. Shah. {\em Julia: A fresh approach to numerical computing}. \url{https://arxiv.org/abs/1411.1607}
 
@@ -481,3 +584,4 @@ W. Stein {\em SAGE Mathematics Software}.  \url{http://www.sagemath.org}
 
 \end{thebibliography}
 \end{document}
+
