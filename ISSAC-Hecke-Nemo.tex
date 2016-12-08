@@ -622,6 +622,21 @@ sufficient space to store a single product, rather the reduction of such a produ
 
 \subsection{Singular: commutative algebra}
 
+We briefly mention the preliminary work of our colleague Oleksandr Motsak, who has written
+a Singular wrapper in Julia.
+
+Singular \cite{singular} is a computer algebra system written in C++ for commutative algebra
+and geometry, with a focus on singularity theory. Julia is able to inteface to C++ using
+the experimental Cxx.jl package, which makes use of the Clang compiler infrastructure to
+compile arbitrary C++ down to the same LLVM bytecode as the Julia compiler. This allows
+for the inclusion of arbitrary inline C++ in Julia functions, including template 
+instantiation at runtime.
+
+The prototype Singular wrapper has been turned into a Julia package called Singular.jl
+\cite{singular.jl}. It provides direct access to the Singular kernel, including its
+Groebner engine and allows both Singular polynomials to be defined over Nemo rings and Nemo
+generic rings to be defined over Singular coefficient rings and polynomial rings.
+
 \section{Future directions}
 
 \section{Acknowledgement}
