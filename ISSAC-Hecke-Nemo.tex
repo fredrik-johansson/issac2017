@@ -496,34 +496,41 @@ implementation.
 
 \section{C/C++ wrappers in Nemo}
 
-\subsection{Flint: number theory}
+\subsection{Flint: arithmetic and number theory}
 
-We envisioned Flint as a set of implementations for specific rings,
-but now we realise that it makes sense to use it only for specific
-rings where there is some trick
-
-For example, there seems to be no need to have a Flint type for
-matrices over $\left(\mathbb{Z}/n\mathbb{Z}\right)[x]$.
-
-Julia has informed development - for example: don't want to just commit suicide
-on bad input
-
-Ground rings $\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{Z}/n\mathbb{Z}$,
+Flint provides arithmetic over
+$\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{Z}/n\mathbb{Z}$,
 $\operatorname{GF}(q), \mathbb{Q}_p$
+as well as matrices, polynomials and power series over most
+of these ground rings.
+Nemo implements elements of these rings as thin wrappers of the
+Flint C types.
+Some Flint types such as finite fields
+require context objects, which we
+store in the corresponding parent objects.
 
-dense univariate polynomials, dense matrices
-and power series
+Nemo uses Flint types where available instead of generic code.
+For instance, \texttt{PolynomialRing(ZZ, "x")} automatically uses
+the Julia wrapper of Flint's \texttt{fmpz\_poly} instead of generic
+polynomials over Nemo's \texttt{ZZ} which wraps Flint's \texttt{fmpz}
+integer type.
+The benefit is that
+Flint implements many low level tricks and algorithmic optimisations
+specific to each ring. For example, Flint's multiplication in $\mathbb{Z}[x]$
+uses a basecase method with optimisations for small coefficients,
+Karatsuba multiplication, Kronecker segmentation and
+a Sch\"{o}nhage-Strassen FFT, with accurate cutoffs
+between algorithms depending on the degrees and coefficient sizes.
 
-some flint types require context objects; parent objects hold context objects
-
-algorithms prototyped in Julia, then rewritten in C
-
-showed the way for multivariate polynomials 
+Additional Flint algorithms wrapped by Nemo include
+primality testing, polynomial factorisation, LLL, and Smith and Hermite
+normal forms of integer matrices.
 
 \subsection{Arb: arbitrary precision ball arithmetic}
 
-Viable approaches to represent elements of $\mathbb{R}$ and $\mathbb{C}$
-include floating-point approximations,
+Computing over $\mathbb{R}$ and $\mathbb{C}$ requires
+using some approximate model for these fields.
+Viable approaches include floating-point approximations,
 intervals, and lazy bit streams (e.g.\ using a finite-precision
 approximation together with an exact symbolic DAG
 to allow re-computing the approximation to higher precision).
@@ -531,6 +538,10 @@ to allow re-computing the approximation to higher precision).
 Nemo includes wrapper code for Arb, which implements real numbers as
 arbitrary-precision midpoint-radius intervals (balls) $[m \pm r]$
 and complex numbers as rectangular boxes $[a \pm r_1]$ + $[b \pm r_2] i$.
+The precision is stored in the parent object, e.g.\ \texttt{R = ArbField(53)}
+creates a field of Arb real numbers with 53-bit precision.
+Arb also supplies types for polynomials, power series and matrices
+over $\mathbb{R}$ and $\mathbb{C}$, as well as transcendental functions.
 
 While alternative implementations of $\mathbb{R}$ and $\mathbb{C}$
 may be added to Nemo in the future, we envision Arb as a reasonable default,
@@ -565,13 +576,6 @@ with plain arbitrary-precision floating-point arithmetic.
 Like Flint, Arb systematically uses asymptotically fast algorithms
 for operations such as polynomial multiplication, with tuning
 for different problem sizes.
-
-
-ArbField, AcbField
-
-polynomials, matrices
-
-also transcendental functions
 
 \subsection{Antic: algebraic number fields}
 
