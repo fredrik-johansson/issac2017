@@ -205,9 +205,120 @@ Of course, many algebraic applications depend on fast assembly optimised bignum 
 which Julia is unlikely to be able to compete with. In fact, Julia itself wraps the GMP
 \cite{gmp} and MPFR \cite{mpfr} libraries for its own multiprecision arithmetic.
 
-We give a few benchmark problems as code examples.
+In this section, we present a few code examples which also double as
+benchmark problems.
 Additional benchmarks are available
 at \url{http://nemocas.org/benchmarks.html}.
+
+\subsection{Multivariate polynomials}
+
+We first consider arithmetic in $\mathbb{Z}[x_1,\ldots,x_k]$.
+The Fateman benchmark consists of computing
+$f \cdot (f+1)$ where $f = (1 + x + y + z + t)^n$,
+usually with $n = 30$. In Nemo, this is expressed by the following code:
+
+\begin{verbatim}
+R,x,y,z,t = PolynomialRing(ZZ, ["x","y","z","t"])
+f = (1+x+y+z+t)^30
+f*(f+1)
+\end{verbatim}
+
+Table~\ref{tab:fateman} shows timing results compared to
+SageMath~7.4, Magma~V2.22-5 and Giac-1.2.2
+on a 2.2~GHz AMD Opteron 6174.
+We used sparse multivariate polynomials in all
+cases (this benchmark could also be performed
+using nested univariate arithmetic, i.e. in $\mathbb{Z}[x][y][z][t]$).
+
+Nemo (generic) is our implementation of Johnson's sparse
+multiplication algorithm for generic coefficients in Julia.
+This implementation is not used by default over $\mathbb{Z}$, but we
+have included it here to give a comparison between
+Julia and C.
+Flint (no asm) is our implementation of essentially
+the same algorithm in C specifically for the coefficient ring $\mathbb{Z}$,
+and Flint (asm) is the same with additional
+assembly optimisations for the coefficient arithmetic.
+
+Finally, Flint (array) and Giac implement an algorithm designed
+for dense polynomials, which consists of accumulating all terms
+into a big array covering all possible exponents.
+(These polynomials are too sparse on a rectangular support
+for Kronecker segmentation to be effective, which otherwise
+would be the preferred way to multiply dense polynomials.)
+
+Table~\ref{tab:pearce} shows timing results on the Pearce
+benchmark, which consists of computing $f \cdot g$ where
+$f = (1 + x + y + 2z^2 + 3t^3 + 5u^5)^n$,
+$g = (1 + u + t + 2z^2 + 3y^3 + 5x^5)^n$.
+This problem is too sparse to use the big array method,
+so only the Johnson algorithm is used.
+As before, we compare the generic Julia version
+with Flint (with and without assembly optimisations).
+Here Giac likewise uses a fully sparse algorithm.
+
+\begin{table}
+\center
+\caption{Time (s) on the Fateman benchmark.}
+\begin{small}
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{c c c c c c c c} \hline
+$n$ & SageMath & Magma & Nemo & Flint & Flint & Flint & Giac \\ 
+    &          &       & (generic) & (no asm) & (asm) & (array) & \\ \hline
+     5  &  0.008 & $\sim$0.01   & 0.004      &        0.002    &        0.002       &      0.0003    &    0.0002 \\
+    10  &  0.53  &   0.12  &   0.11     &         0.04    &         0.02       &         0.005   &      0.006 \\
+    15  &   10   &    1.9  &      1.6   &         0.53    &          0.30      &           0.08   &         0.11 \\
+    20  &   76   &    16   &    14.3    &          6.3    &            2.8     &            0.53   &         0.62 \\
+    25  &  426   &   98    &      82    &          39     &         17.4        &           2.5     &         2.8 \\
+    30  & 1814   & 439     &  362       &         168     &            82        &            11     &          14 \\
+\end{tabular}
+\label{tab:fateman}
+\end{small}
+\end{table}
+
+We emphasise again that Nemo defaults to using Flint instead of the generic
+Julia code for $\mathbb{Z}[x_1,\ldots,x_k]$.
+Flint in turn will use the (array) method by default
+given sufficiently dense input (e.g.\ on the Fateman polynomials)
+and the assembly optimised Johnson algorithm otherwise (e.g.\ on the Pearce polynomials).
+
+It is somewhat remarkable that the generic Julia implementation
+of Johnson's algorithm comes
+within a factor two of our C version in Flint (without asm),
+and even runs slightly faster than the C code in Magma.
+Of course, the coefficient ring $\mathbb{Z}$ is exceptionally important
+so even small speedups matter,
+and arithmetic in $\mathbb{Z}$ is cheap
+(and susceptible to precisely the type of low level optimisations
+that are convenient to do in C), which is why we go through
+the trouble to write a dedicated implementation of $\mathbb{Z}[x_1,\ldots,x_k]$ in Flint.
+Over more exotic coefficient domains, the relative
+overhead of the generic Julia code will be even less significant,
+making specialied C implementations less useful.
+
+\begin{table}
+\center
+\caption{Time (s) on the Pearce benchmark.}
+\begin{small}
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{c c c c c c c} \hline
+$n$ & SageMath & Magma & Nemo & Flint & Flint & Giac \\ 
+    &          &       & (generic) & (no asm) & (asm) & \\ \hline
+     4  &   0.01 & $\sim$0.01  &   0.008          & 0.003         &   0.002             &                     0.004 \\
+     6  &   0.20  &   0.08   &     0.07        &     0.03       &       0.03         &                           0.03 \\
+     8  &   2.0  &     0.68   &     0.56       &      0.16      &        0.15        &                            0.28 \\
+    10  &   11   &     3.0    &       2.2      &       0.77     &         0.71       &                             1.45 \\
+    12  &   57   &    11.3    &      8.8       &        3.7     &           3.2      &                                4.8 \\
+    14  &  214   &   36.8     &   32.3         &       16       &         12         &                               14 \\
+    16  &  785   &   94.0     &   85.5         &       44       &         32         &                               39 \\
+\end{tabular}
+\label{tab:pearce}
+\end{small}
+\end{table}
+
+\subsection{Generic resultant}
 
 The following example computes a resultant
 in the ring $((\operatorname{GF}(17^{11})[y])/(y^3 + 3xy + 1))[z]$,
@@ -231,7 +342,9 @@ resultant(s, t)
 This example takes 179907~s in SageMath~6.8, 82 s in Magma V2.21-4
 and 0.2 s in Nemo-0.4.
 
-Next, we compute the determinant of a random $80\times80$ matrix
+\subsection{Generic linear algebra}
+
+We compute the determinant of a random $80\times80$ matrix
 with entries in a cubic number field.
 This benchmark is designed to test generic linear algebra over a field
 where there is coefficient blowup. The number field arithmetic is
@@ -292,12 +405,12 @@ that is not being modified.
 Naturally, the idea is to limit this less readable construct to
 critical inner loops of operations such as polynomial
 and matrix multiplication.
-Using this in-place update in the main loop of univariate polynomial
-multiplication saves a whole factor 6.7 on the Fateman benchmark
-$f \cdot (f+1)$ where
-$f = (1 + x + y + z + t)^{30}$, evaluated over the nested univariate
-ring $\mathbb{Z}[x][y][z][t]$. This is an extreme example, and
-the typical gain is more modest.
+%Using this in-place update in the main loop of univariate polynomial
+%multiplication saves a whole factor 6.7 on the Fateman benchmark
+%$f \cdot (f+1)$ where
+%$f = (1 + x + y + z + t)^{30}$, evaluated over the nested univariate
+%ring $\mathbb{Z}[x][y][z][t]$. This is an extreme example, and
+%the typical gain is more modest.
 
 \subsection{Polynomial algorithms}
 
