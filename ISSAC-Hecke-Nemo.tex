@@ -652,28 +652,21 @@ normal forms of integer matrices.
 
 Computing over $\mathbb{R}$ and $\mathbb{C}$ requires
 using some approximate model for these fields.
-Viable approaches include floating-point approximations,
-intervals, and lazy bit streams (e.g.\ using a finite-precision
-approximation together with an exact symbolic DAG
-to allow re-computing the approximation to higher precision).
-
-Nemo includes wrapper code for Arb, which implements real numbers as
-arbitrary-precision midpoint-radius intervals (balls) $[m \pm r]$
-and complex numbers as rectangular boxes $[a \pm r_1]$ + $[b \pm r_2] i$.
-The precision is stored in the parent object, e.g.\ \texttt{R = ArbField(53)}
-creates a field of Arb real numbers with 53-bit precision.
-Arb also supplies types for polynomials, power series and matrices
-over $\mathbb{R}$ and $\mathbb{C}$, as well as transcendental functions.
-
-While alternative implementations of $\mathbb{R}$ and $\mathbb{C}$
-may be added to Nemo in the future, we envision Arb as a reasonable default,
-and we have used it with good success (see Hecke).
-
-For many computer algebra algorithms, the error analysis
+The most common model is floating-point arithmetic.
+However, for many computer algebra algorithms, the error analysis
 necessary to guarantee correct results with floating-point arithmetic
 becomes impractical to do by hand.
 Interval arithmetic solves this problem by effectively making
 error analysis automatic.
+
+Nemo includes wrapper code for the C library Arb, which implements real numbers as
+arbitrary-precision midpoint-radius intervals (balls) $[m \pm r]$
+and complex numbers as rectangular boxes $[a \pm r_1]$ + $[b \pm r_2] i$.
+The precision is stored in the parent object.
+For example, \texttt{R = ArbField(53)}
+creates a field of Arb real numbers with 53-bit precision.
+Arb also supplies types for polynomials, power series and matrices
+over $\mathbb{R}$ and $\mathbb{C}$, as well as transcendental functions.
 
 With arbitrary-precision interval arithmetic, a form of
 coarse-grained lazy evaluation is possible: the user can
@@ -684,13 +677,7 @@ required~$p$ is available; that is, the intervals
 can be used as if they were plain floating-point numbers, and the automatic
 error bounds simply provide a certificate.
 
-A lazy representation for single numbers would be more convenient in some
-applications,
-but also probably slower (and less space-efficient) due to storing DAGs.
-Implementing lazy numbers on top of Arb in Julia
-would be an interesting future project.
-
-The midpoint-radius representation used by Arb is particularly efficient
+The midpoint-radius interval form is particularly efficient
 at high precision,
 since low precision is sufficient for the radii, which means that
 speed and memory efficiency is close to the optimum possible
@@ -698,6 +685,20 @@ with plain arbitrary-precision floating-point arithmetic.
 Like Flint, Arb systematically uses asymptotically fast algorithms
 for operations such as polynomial multiplication, with tuning
 for different problem sizes.
+
+While alternative implementations of $\mathbb{R}$ and $\mathbb{C}$
+may be added to Nemo in the future, we envision Arb as a reasonable default,
+and we have used it with good success (see Hecke).
+
+In some applications, it would be more convenient to use a lazy
+bit stream abstraction in which the precision for individual
+numbers is increased automatically.
+This typically requires storing a symbolic DAG representation,
+which potentially becomes very costly.
+Such an approach has previously been explored in MMXlib~\cite{mmxlibeffective} and iRRAM~\cite{irram}
+among others.
+Implementing lazy numbers on top of Arb in Julia
+would be an interesting future project.
 
 \subsection{Antic: algebraic number fields}
 
