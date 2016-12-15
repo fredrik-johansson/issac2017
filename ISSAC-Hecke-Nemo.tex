@@ -12,6 +12,8 @@
 \newtheorem{definition}{Definition}
 \newtheorem{Assertion}{Assertion}
 
+\providecommand{\QQ}{\mathbb{Q}}
+
 \makeatletter
 \def\Ddots{\mathinner{\mkern1mu\raise\p@
 \vbox{\kern7\p@\hbox{.}}\mkern2mu
@@ -493,6 +495,33 @@ Nemo. We then found it quite easy to implement a C version from the Julia
 implementation.
 
 \section{Hecke: algebraic number theory in Julia}
+
+Hecke provides
+\begin{itemize}
+\item
+  element and ideal arithmetic in orders of number fields,
+\item
+  class group and unit group computation,
+\item
+  verified residue computation of Dedekind zeta functions,
+\item
+  verified computations with embeddings.
+\end{itemize}
+
+\subsection{Fast ideal arithmetic in rings of integers}
+
+\subsection{The use of interval arithmetic}
+
+While algebraic number fields and their elements have by definition a purely algebraic nature, very often one is forced to study these discrete objects in connection with continous objects (rephrase to avoid ``objects'' twice), e.g. using Dedekind zeta functions or embeddings into an algebraically closed field.
+This necessity to do this can be twofold. One the one hand it is an intrinsic property of the problem and on the other hand it could be the fastest (known) way to solve a problem.
+No matter what the reason is, leaving the realm of discrete objects usually comes at the prize of working with approximations and all kinds of compliactions.
+We give a few examples of such instances and show, how the interval arithmetic provided by Arb is employed in Hecke to make working with these continuous objects like a breeze.
+
+\subsubsection{Computing conjugates}
+
+Let $K = \QQ[X]/(f)$ be an algebraic number field, where $f \in \QQ[X]$ is an irreducible polynomial.
+
+\subsubsection{Torsion units}
 
 \section{C/C++ wrappers in Nemo}
 
