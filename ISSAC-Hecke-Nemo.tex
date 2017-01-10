@@ -105,6 +105,15 @@ The benefits of Julia include:
 Julia's JIT compilation allows fast performance for
 generic algorithms. (Contrast: Python?... Alternative: C++ templates?)
 
+One of the most important features from a mathematical point of view is Julia's parametric type system.
+A type is parametric if it depends on another type. For example, in Julia, an array of integers has
+type \texttt{Array\{Int, 1\}} (the 1 refers to the number of dimensions of the array).
+
+We make heavy use of the parametric type system in Nemo and Hecke. For example, generic polynomials
+over a ring $R$ have type \texttt{GenPoly\{T\}} where $T$ is the type of elements of the ring $R$.
+Parametric types bear some resemblance to C++ template classes, but note that in Julia the type $T$ can
+be constrained to belong to a specified class of types.
+
 \section{Modelling domains in Julia}
 
 Julia provides two levels of types that we make use of abstract types and concrete types.
