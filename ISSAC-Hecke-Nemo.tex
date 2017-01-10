@@ -1001,7 +1001,7 @@ where one wants to compute $g(x)h(x) \pmod{f(x)}$.
 
 The third precomputation is of traces $S_k = \sum_{i=1}^n \theta_i^k$ where the $\theta_i$
 are the roots of the defining polynomial $f(x)$. These traces are precomputed using
-recursive formulae as described for example in \cite{cohen}. These precomputed traces are
+recursive formulae as described for example in \cite{Cohen1993}. These precomputed traces are
 used to speed up the computation of traces of elements of the algebraic number field.
 
 Norms of elements of number fields are computed using resultants, for which we make use of
@@ -1035,11 +1035,6 @@ The prototype Singular wrapper has been turned into a Julia package called Singu
 \cite{singular.jl}. It provides direct access to the Singular kernel, including its
 Groebner engine and allows both Singular polynomials to be defined over Nemo rings and Nemo
 generic rings to be defined over Singular coefficient rings and polynomial rings.
-
-\section{Future directions}
-
-\section{Acknowledgement}
-
 
 \begin{thebibliography}{99}
 
@@ -1077,6 +1072,9 @@ E.~Dobrowolski.
 \newblock {\em Bull. Acad. Polon. Sci. S\'er. Sci. Math. Astronom. Phys.},
   26(4):291--292, 1978.
 
+\bibitem{giac}
+B.~Parisse, R.~De Graeve, {\em Giac/Xcas version 1.2.2}, 2016. \url{http://www.www-fourier.ujf-grenoble.fr/~parisse/giac.html}
+
 \bibitem{Pohst1997}
 M.~Pohst and H.~Zassenhaus.
 \newblock {\em Algorithmic algebraic number theory}.
@@ -1096,19 +1094,19 @@ J. J. Cannon, W. Bosma (Eds.) {\em Handbook of Magma Functions}, Edition 2.13 (2
 J. von zur Gathen and J. Gerhard. {\em Modern Computer Algebra}. Cambridge University Press, 1999.
 
 \bibitem{flint}
-W. Hart, F. Johansson and S. Pancratz. {\em FLINT}, open-source C-library. \url{http://www.flintlib.org}
+W. Hart, F. Johansson and S. Pancratz. {\em FLINT: Fast Library for Number Theory}. \url{http://www.flintlib.org}
 
 \bibitem{antic}
 W. Hart, {\em ANTIC: Algebraic Number Theory in C}, Computeralgebra Rundbrief 56, Fachgruppe Computeralgebra, 2015. \url{http://www.fachgruppe-computeralgebra.de/data/CA-Rundbrief/car56.pdf}
 
 \bibitem{arb}
-F. Johansson. {\em Arb}, open-source C-library. \url{http://arblib.org}
+F. Johansson. {\em Arb: A C library for ball arithmetic}. \url{http://arblib.org}
 
 \bibitem{ntl}
-V. Shoup {\em NTL}, open-source C++ library. \url{http://www.shoup.net/ntl/}
+V. Shoup {\em NTL: A library for doing number theory}. \url{http://www.shoup.net/ntl/}
 
 \bibitem{sage}
-W. Stein {\em SageMath Mathematics Software}.  \url{http://www.sagemath.org}
+The Sage Developers, {\em SageMath, the Sage Mathematics Software System (Version 7.4)}, 2016.  \url{http://www.sagemath.org}
 
 \bibitem{julia} J. Bezanson, A. Edelman, S. Karpinski and V. B. Shah. {\em Julia: A fresh approach to numerical computing}. \url{https://arxiv.org/abs/1411.1607}
 
