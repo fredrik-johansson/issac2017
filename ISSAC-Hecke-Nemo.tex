@@ -70,7 +70,8 @@ arithmetic.
 \section{Introduction}
 
 Nemo is a computer algebra package for the Julia programming language. The eventual aim is
-to provide highly performant commutative algebra, number theory and group theory routines.
+to provide highly performant commutative algebra, number theory, group theory and discrete
+routines.
 
 Nemo consists of two parts: wrappers of specialised C/C++
 libraries (Flint \cite{flint}, Arb \cite{arb}, Antic \cite{antic} and Singular
@@ -116,7 +117,7 @@ be constrained to belong to a specified class of types.
 
 \section{Modelling domains in Julia}
 
-Julia provides two levels of types that we make use of abstract types and concrete types.
+Julia provides two levels of types that we make use of: abstract types and concrete types.
 Concrete types are equivalent to the types that appear in languages such as Java, C or C++,
 etc.
 
@@ -179,8 +180,8 @@ like types, but are in fact ordinary Julia objects. As ordinary objects, parents
 arbitrary information, such as the modulus in $\mathbb{Z}/n\mathbb{Z}$. Each element in the ring
 $\mathbb{Z}/n\mathbb{Z}$ then contains a pointer to the relevant parent object.
 
-This model of mathematical parent objects is taken from SageMath which in turn followed the Magma
-computer algebra system.
+This model of mathematical parent objects is taken from SageMath \cite{sage} which in turn followed
+the Magma \cite{magma} computer algebra system.
 
 Julia allows ordinary objects to be made callable. We make use of the facility to write coercions
 and constructors for elements of mathematical domains in Nemo/Hecke. For example, the following
@@ -205,7 +206,7 @@ speed as a low-level C or Fortran algorithm.
 It is remarkable that the performance of Julia is so close to C in the optimum case that
 it is possible to implement fast basic arithmetic in Julia itself. We view the main
 advantage of Julia as the ability to implement fast generic algorithms, for which a specific
-implementation does not exist in C. But it is also quite convenient to prototype low level
+implementation does not exist in C. It is also quite convenient to prototype low level
 algorithms in Julia and then port this to low level, hand optimised C with manual memory
 management at a later stage.
 
@@ -374,17 +375,13 @@ end
 det(M)
 \end{verbatim}
 
-This takes 5893~s in SageMath~6.8, 21.9~s in Pari/GP~2.7.4, 5.3~s in Magma V2.21-4,
+This takes 5893~s in SageMath~6.8, 21.9~s in Pari/GP~2.7.4 \cite{pari}, 5.3~s in Magma V2.21-4,
 and 2.4~s in Nemo-0.4.
 
 \section{Generic algorithms in Nemo}
 
 Many high level algorithms in number theory and computer algebra rely on
 the efficient implementation of fundamental algorithms.
-
-\subsection{Generic functions}
-
-Maybe talk about how they are defined and how type dispatch works here?
 
 \subsection{In-place operations}
 
@@ -495,7 +492,7 @@ algorithms over an integral domain. For example, fraction free Gaussian eliminat
 for LU decomposition, inverse, determinant and reduced row echelon form
 are well-known.
 
-One place where we have been able to use this strategy is the computation
+In addition we have been able to use this strategy in the computation
 of the characteristic polynomial. We have adapted the well-known 1937 method
 of Danilevsky for computing the characteristic polynomial into a fraction-free
 version.
@@ -516,14 +513,15 @@ Removing such a factor has to be done in a way that respects the
 similarity transforms. We achieve this by making two passes over the matrix
 to remove the common factor.
 
+FIXME: talk about matrix algorithms over rings.
+
 \subsubsection{Minimal polynomial}
 
 Next we describe an algorithm we have implemented for efficient
 computation of minimal polynomial of an $n\times n$ integer matrix $M$.
 
 A standard approach to this problem is known as ``spinning''. 
-We first describe this idea for matrices over a field~$K$, where we have
-in mind the field $\mathbb{Z}/p\mathbb{Z}$ for a prime $p$.
+We first describe this idea for matrices over a field~$K$.
 
 The main idea is to think of $M$ as a linear operator on an $n$-dimensional
 $K$-vector space $V$ and to write $V$ as a sum of invariant subspaces, 
@@ -607,20 +605,17 @@ Of course we know that the associated Krylov subspaces $W_i$ sum to $V$
 because they do so modulo $p$.
 
 We have been informed by personal communication that the algorithm used by
-Magma (\cite{magma}) also uses spinning, however it uses a $p$-adic
+Magma \cite{magma} also uses spinning, however it uses a $p$-adic
 approach over $\mathbb{Z}$. Unfortunately we have not been able to find a
 publication outlining their method.
 
-In practice our multimodular algorithm seems to just outperform Magma on the
+In practice our multimodular algorithm seems to slightly outperform Magma on the
 examples we have tried, including matrices with minimal polynomial smaller 
 than the characteristic polynomial.
 
 A generic version of this algorithm is implemented in Julia code in Nemo, and
 an efficient version over $\mathbb{Z}$ using the Chinese remaindering trick
 is implemented in Flint and made available in Nemo.
-We found it extremely convenient to prototype the generic version first in
-Nemo. We then found it quite easy to implement a C version from the Julia
-implementation.
 
 \section{Hecke: algebraic number theory in Julia}
 
@@ -1019,23 +1014,6 @@ products are first accumulated and their sum can be reduced at the end of the do
 To facilitate this delayed reduction, all Antic number field elements are allocated with
 sufficient space to store a single product, rather the reduction of such a product.
 
-\subsection{Singular: commutative algebra}
-
-We briefly mention the preliminary work of our colleague Oleksandr Motsak, who has written
-a Singular wrapper in Julia.
-
-Singular \cite{singular} is a computer algebra system written in C++ for commutative algebra
-and geometry, with a focus on singularity theory. Julia is able to inteface to C++ using
-the experimental Cxx.jl package, which makes use of the Clang compiler infrastructure to
-compile arbitrary C++ down to the same LLVM bytecode as the Julia compiler. This allows
-for the inclusion of arbitrary inline C++ in Julia functions, including template 
-instantiation at runtime.
-
-The prototype Singular wrapper has been turned into a Julia package called Singular.jl
-\cite{singular.jl}. It provides direct access to the Singular kernel, including its
-Groebner engine and allows both Singular polynomials to be defined over Nemo rings and Nemo
-generic rings to be defined over Singular coefficient rings and polynomial rings.
-
 \begin{thebibliography}{99}
 
 \bibitem{Bach1995}
@@ -1108,9 +1086,13 @@ V. Shoup {\em NTL: A library for doing number theory}. \url{http://www.shoup.net
 \bibitem{sage}
 The Sage Developers, {\em SageMath, the Sage Mathematics Software System (Version 7.4)}, 2016.  \url{http://www.sagemath.org}
 
-\bibitem{julia} J. Bezanson, A. Edelman, S. Karpinski and V. B. Shah. {\em Julia: A fresh approach to numerical computing}. \url{https://arxiv.org/abs/1411.1607}
+\bibitem{julia}
+J. Bezanson, A. Edelman, S. Karpinski and V. B. Shah. {\em Julia: A fresh approach to numerical computing}. \url{https://arxiv.org/abs/1411.1607}
 
-\bibitem{singular} W. Decker, G. M. Greuel, G. Pfister and H. Sch\"onemann. {\em Singular} --- A computer algebra system for polynomial computations. \url{http://www.singular.uni-kl.de}
+\bibitem{clow}
+M.~Soltys. {\em Berkowitz's algorithm and clow sequences}, The Electronic Journal of Linear Algebra, International Linear Algebra Society, vol 9, Apr. 2002, pp. 42--54.
+\bibitem{singular}
+W. Decker, G. M. Greuel, G. Pfister and H. Sch\"onemann. {\em Singular} --- A computer algebra system for polynomial computations. \url{http://www.singular.uni-kl.de}
 
 %\bibliographystyle{abbrv}
 %\bibliography{issac}
