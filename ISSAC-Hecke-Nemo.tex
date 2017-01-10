@@ -16,6 +16,7 @@
 
 \providecommand{\QQ}{\mathbb{Q}}
 \providecommand{\ZZ}{\mathbb{Z}}
+\providecommand{\NN}{\mathbb{N}}
 \providecommand{\RR}{\mathbb{R}}
 \providecommand{\CC}{\mathbb{C}}
 
@@ -515,11 +516,147 @@ Initially developed during the DFG priority project SPP 1489, Hecke includes the
 \end{itemize}
 
 Hecke is written purely in Julia and uses Nemo in two essential ways. On the one hand, it makes heavy use of Flint, Arb and Antic through the Julia interface provided by Nemo.
-On the other hand, we can apply the generic constructions and algorithms provided by Nemo to our newly defined type. This allows for example to work efficiently with polynomials or matrices over rings of integers without the necessity to define special types for these objects.
+On the other hand, it applies the generic constructions and algorithms provided by Nemo to its own types. This allows for example to work efficiently with polynomials or matrices over rings of integers without the necessity to define special types for these objects.
 
 While for most of the computational challenges we relied on well known techniques as described in \cite{Cohen1993, Pohst1997, Belabas2004} (with a few modifications), we use new strategies for ideal arithmetic as well as for computations with approximations.
 
 \subsection{Fast ideal arithmetic in rings of integers}
+
+A classical result is that in Dedekind domains, like the ring of integers of a number field, any
+ideal can be generated using only two elements, one of which can even be chosen
+at random in the ideal. From the very onset of algorithmic theory this was
+tempting as it reduces the storage requirement to two elements in comparison to the many elements necessary to
+store a $\ZZ$-basis. However, the key problem was always the lack of
+efficient algorithms for working with the generators. We remark that one
+operation was always efficient using two generators: powering of ideals.
+
+A refinement of this idea, due to Pohst and Zassenhaus \cite[p. 400]{Pohst1997}, is that
+of a \textit{normal} presentation. Here a finite set $S$ of prime numbers
+is fixed, typically containing at least all prime divisors of the norm of the ideal. Then,
+based on this set, the two generators are chosen: The first as an integer
+having only divisors in $S$---but typically with too high multiplicities.
+The second generator then has the correct multiplicity at all prime ideals
+over primes in $S$---but is allowed to have other divisors as well.
+For the remainder of this section, let $K/\QQ$ be a number field of
+degree $n$ and $\mathcal O_K$ be its ring of integers.
+
+\begin{definition}
+Let $S$ be a finite set of prime numbers and $A$ a nonzero ideal such that
+all primes $p$ dividing the norm $N(A) = |\mathcal O_K/A|$ are in $S$.
+A tuple $(a, \alpha)$ is a $S$-normal presentation for $A$ if and only if
+\begin{itemize}
+\item we have $a\in A\cap \mathbb Z$, $\alpha\in A$,
+\item for all prime ideals $Q$ lying over $p\not\in S$ we have $v_Q(a)= v_Q(A) = 0$
+  for the exponential valuation $v_Q$ associated to $Q$,
+\item for all prime ideals $Q$ over $p\in S$ we have $v_Q(\alpha) = v_Q(A)$.
+\end{itemize}
+\end{definition}
+
+A direct application of the Chinese remainder theorem shows the existence of such normal presentations.
+The algorithmic importance comes from the following result.
+
+\begin{theorem}
+Let $A = \langle a, \alpha \rangle$ be an ideal in $S$-normal presentation. Then the following hold:
+\begin{enumerate}
+\item We have $N(A) = \gcd(a^n, N(\alpha))$
+\item If $B = \langle b, \beta\rangle$ is a second ideal in $S$-normal
+presentation for the same set $S$, then
+$AB = \langle ab, \alpha\beta\rangle$ is also a $S$-normal presentation.
+\item Let $\gamma = 1/\alpha$, $\langle g\rangle = \alpha \mathcal O_K \cap \ZZ$,
+ $g = g_1g_2$ with coprime $g_1$, $g_2$ and $g_2$ only divisible be primes not in $S$. Then $A^{-1} = \langle 1, g_2\gamma\rangle$ is a $S$-normal presentation.
+\item If $p$ is a prime number and $P= \langle p, \theta\rangle$ a prime ideal over $p$
+in $\{p\}$-normal presentation, then the $\{p\}$-normal presentation
+of $P^{-1} = \langle 1, \gamma\rangle$ yields a valuation element, that is,
+$v_P(\beta) = \max\{ k \mid \gamma^k\beta\in \mathcal O_K\}$ for all $\beta \in \mathcal O_K$.
+\end{enumerate}
+\end{theorem}
+
+It should be noted that (almost all) prime ideal are naturally computed
+in $\{p\}$-normal presentation. The key problem in using the theorem for
+multiplication lies in the fact that both ideals need to be giving by a $S$-normal presentation for
+the same set $S$, which traditionally is achieved by recomputing
+a suitable presentation from scratch, taking random candidates for the
+second generator until it works. Based on the following lemma, have developed a new algorithm that does it at the cost 
+of a few integer operations only.
+
+\begin{lemma}
+Let $S$ be a finite set of prime numbers and $A=\langle a, \alpha\rangle$ an ideal in
+$S$-normal presentation. Let $T$ be a second set of primes and set
+$s = \prod_{x\in S} x$ as well as $t = \prod_{x\in T\setminus S} x$. If $1 = \gcd(as, t) = uas + vt$,
+then $\langle a, \beta \rangle$ is a $S\cup T$-normal presentation, where $\beta = vt\alpha + uas$.
+\end{lemma}
+
+\begin{proof}
+By definition, $a$ has only prime divisors in $S$, so $as$ and $t$ are coprime.
+Also, $a$ is a possible first generator for the $S\cup T$-normal presentation.
+Let $P$ be a prime ideal over a prime $p\in S$, then
+$v_P(\beta) = v_P(\alpha)= v_P(A)$ since $v_P(A) <v_P(s)+v_P(a)$ due to $v_P(s)\ge 1$ and $v_P(a) \ge v_P(A)$ by definition.
+For $P$ coming from $T\setminus S$, we have $v_P(\beta) = 0$ since $v_P(t)\ge 1$ and $v_P(uas) = 0$ as well.
+\end{proof}
+
+Using this lemma on both input ideals, we can get compatible $S$-normal 
+presentations at the cost of two $\gcd$ computations, a few pure integer multiplications and two products of integers with algebraic numbers. The final ideal
+multiplication is then a single integer product and a single product of
+algebraic numbers. Thus the asymptotic cost is that of a single multiplication of two algebraic numbers.
+In contrast, all previous algorithms required some linear algebra step.
+
+Finally, we improve on the computation of a $S$-normal presentation.
+
+\begin{lemma}
+If $0\ne\alpha\in \mathcal O_K$, then $\langle\alpha\rangle\cap \mathbb Z = \langle d\rangle$ where $d>0$ is minimal such that $d/\alpha\in \mathcal O_K$.
+\end{lemma}
+
+\begin{theorem}[\cite{Pohst1997}]
+Let $A$ be a nonzero ideal. Then
+$(a, \alpha)$ is an $\{p \text{ prime} \mid p \text{ divides }a\}$-normal presentation for $A$ if and only if
+for $d = \min \alpha\mathcal O_K \cap \NN$ we have
+\[ \gcd(a, \frac{d}{\gcd(a, d)}) = 1.\]
+\end{theorem}
+
+Together with the above lemma, this allows for the rapid computation of a
+normal presentation: Choose $\alpha\in A$ at random until a normal presentation
+is obtained. It can be shown that, unless $a$ involves many ideals of small
+norm, this is very efficient.
+
+To illustrate the speed of our algorithm, we created a list of ideals of bounded norm (here: 400) and
+took random products of 100 ideals in the field
+defined by the polynomial $X^n + 2$ for $n=16, 32, 64, 128$.
+The results are presented in the following table.
+Times are given in seconds. A dash indicates that the computation took  more than 20 seconds.
+\begin{center}
+\begin{tabular}{c||c|c|c|c}
+$n$ & 16 & 32 & 64 & 128 \\\hline
+Magma & 14 & -& - & -        \\
+Pari & 0.05 & 0.18 & 0.96 & 5.4 \\
+Hecke & 0.02 & 0.04 & 0.06 & 0.08
+\end{tabular}
+\end{center}
+
+%%
+%% Pari:
+%% #
+%% n = nfinit(x^128+2);
+%% p = 2
+%% a = List([])
+%% for(i=1, 100, j = idealprimedec(n, p); for(l=1, length(j), if(idealnorm(n, j[l]) < 400, listput(a, j[l]))); p = nextprime(p+1))
+%% 
+%% z = a[1]
+%% for(i=1, 100, z = idealmul(n, z, a[1+random(length(a))]))
+%%
+%% Magma:
+%% K := NumberField(x^16+2);
+%% M := MaximalOrder(K);
+%% F := FactorBasis(M, 400);
+%% z := F[1];
+%% time for i:= 1 to 10 do z *:= Random(F); end for;
+%%
+%% Hecke:
+%% Qx, x = QQ["x"];
+%% K, a  = NumberField(x^64+2);
+%% O = maximal_order(K);
+%% const B = Hecke.NfFactorBase(), 400; complete = false, degree_limit = 0)
+%% z = B.ideals[1]
+%% @time for i=1:100 z *= rand(B.ideals); end;
 
 \subsection{The use of interval arithmetic}
 
@@ -541,6 +678,7 @@ Ball arithmetic then yields balls $B_\alpha^{(i)} \subseteq \RR$ with
 \[ \sigma_i(\alpha) = \sum_{1 \leq j \leq d} a_j \alpha_i^j \in \sum_{1 \leq j \leq d} a_j (B_{p'}^{(i)})^j\subseteq B_\alpha^{(i)}. \]
 Finally we check whether $\operatorname{diam}(B_\alpha^{(i)}) \leq 2^{-p}$. If this is not the case, we increase the working precision $p'$ and repeat the steps.
 When finished, the midpoints of the balls $B_\alpha^{(i)}$ are approximations $\hat \sigma_i(\alpha)$ with the desired property.
+The following code shows how this can be implemented in Hecke.
 
 \begin{verbatim}
 QQx, x = PolynomialRing(QQ, "x")
@@ -562,7 +700,7 @@ while true
 end
 \end{verbatim}
 
-Performing the same task using floating point arithmetic only requires a priori error analysis to obtain the precision necessary for a correct result.
+Performing the same task using only floating point arithmetic requires a priori error analysis to obtain the precision necessary for a correct result.
 Since through the use of ball arithmetic the problem of keeping track of errors is delegated to Arb, this allows for quick development of algorithms working with conjugates, which at the same time yield guaranteed results.
 
 \subsubsection{Torsion units}
@@ -578,7 +716,7 @@ While this works well for small values of $n$, for large $n$ this quickly become
 
 A second approach rests on the fact that torsion units are characterized by their conjugates: An element $\alpha$ is a torsion unit if and only if $\lvert \sigma_i(\alpha) \rvert = 1$ for $1 \leq i \leq d$.
 Although we can compute approximations of conjugates with arbitrary precision, since conjugates are in general irrational, it is not possible test whether they (or their absolute value) are equal to $1$.
-Nevertheless we can bring conjugates into play using the following result of Dobrowolski~\cite{Dobrowolski1978} on smallest modulus of conjugates of non-torsion units.
+Nevertheless we can bring conjugates into play using the following result of Dobrowolski~\cite{Dobrowolski1978}, which bounds the modulus of conjugates of non-torsion units.
 
 \begin{lemma}
 If $\alpha$ is not a torsion unit, then there exists some $1 \leq i \leq k$ such that
@@ -588,7 +726,7 @@ If $\alpha$ is not a torsion unit, then there exists some $1 \leq i \leq k$ such
 We can rephrase this using approximation as follows.
 
 \begin{lemma}\label{lem:tor}
-  Let $(B^{(i)}_k)_{k \geq 1}$, $1 \leq i \leq d$, be a sequences of real balls with $\lvert \sigma_i(\alpha) \rvert \in B^{(i)}_k$ and $\max_i\operatorname{diam}(B_k^{(i)}) \to 0$ for $k \to \infty$.
+  Let $(B^{(i)}_k)_{k \geq 1}$, $1 \leq i \leq d$, be sequences of real balls with $\lvert \sigma_i(\alpha) \rvert \in B^{(i)}_k$ and $\max_i\operatorname{diam}(B_k^{(i)}) \to 0$ for $k \to \infty$.
   \begin{enumerate}
   \item
     If the element $\alpha$ is torsion, there exists $k \geq 1$ such that $1 < B_k^{(i)}$ for some $1 \leq i \leq d$.
