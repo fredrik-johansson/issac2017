@@ -10,7 +10,15 @@
 
 \newtheorem{alg}{Algorithm}
 \newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
 \newtheorem{Assertion}{Assertion}
+
+\providecommand{\QQ}{\mathbb{Q}}
+\providecommand{\ZZ}{\mathbb{Z}}
+\providecommand{\NN}{\mathbb{N}}
+\providecommand{\RR}{\mathbb{R}}
+\providecommand{\CC}{\mathbb{C}}
 
 \makeatletter
 \def\Ddots{\mathinner{\mkern1mu\raise\p@
@@ -145,7 +153,7 @@ The diagram below shows the abstract type hierarchy in Nemo.
 
 \begin{figure}[h]
 \centering
-\includegraphics[scale=0.37]{types.png}
+\includegraphics[scale=0.21]{types.png}
 \caption{The Nemo abstract type hierarchy}
 \end{figure}
 
@@ -616,6 +624,271 @@ implementation.
 
 \section{Hecke: algebraic number theory in Julia}
 
+Hecke is a tool for algebraic number theory, written in the Julia programming language.
+Initially developed during the DFG priority project SPP 1489, Hecke includes the following functionality:
+\begin{itemize}
+\item
+  element and ideal arithmetic in orders of number fields,
+\item
+  class group and unit group computation,
+\item
+  verified computations with embeddings and
+\item
+  verified residue computation of Dedekind zeta functions.
+\end{itemize}
+
+Hecke is written purely in Julia and uses Nemo in two essential ways. On the one hand, it makes heavy use of Flint, Arb and Antic through the Julia interface provided by Nemo.
+On the other hand, it applies the generic constructions and algorithms provided by Nemo to its own types. This allows for example to work efficiently with polynomials or matrices over rings of integers without the necessity to define special types for these objects.
+
+While for most of the computational challenges we relied on well known techniques as described in \cite{Cohen1993, Pohst1997, Belabas2004} (with a few modifications), we use new strategies for ideal arithmetic as well as for computations with approximations.
+
+\subsection{Fast ideal arithmetic in rings of integers}
+
+A classical result is that in Dedekind domains, like the ring of integers of a number field, any
+ideal can be generated using only two elements, one of which can even be chosen
+at random in the ideal. From the very onset of algorithmic theory this was
+tempting as it reduces the storage requirement to two elements in comparison to the many elements necessary to
+store a $\ZZ$-basis. However, the key problem was always the lack of
+efficient algorithms for working with the generators. We remark that one
+operation was always efficient using two generators: powering of ideals.
+
+A refinement of this idea, due to Pohst and Zassenhaus \cite[p. 400]{Pohst1997}, is that
+of a \textit{normal} presentation. Here a finite set $S$ of prime numbers
+is fixed, typically containing at least all prime divisors of the norm of the ideal. Then,
+based on this set, the two generators are chosen: The first as an integer
+having only divisors in $S$---but typically with too high multiplicities.
+The second generator then has the correct multiplicity at all prime ideals
+over primes in $S$---but is allowed to have other divisors as well.
+For the remainder of this section, let $K/\QQ$ be a number field of
+degree $n$ and $\mathcal O_K$ be its ring of integers.
+
+\begin{definition}
+Let $S$ be a finite set of prime numbers and $A$ a nonzero ideal such that
+all primes $p$ dividing the norm $N(A) = |\mathcal O_K/A|$ are in $S$.
+A tuple $(a, \alpha)$ is a $S$-normal presentation for $A$ if and only if
+\begin{itemize}
+\item we have $a\in A\cap \mathbb Z$, $\alpha\in A$,
+\item for all prime ideals $Q$ lying over $p\not\in S$ we have $v_Q(a)= v_Q(A) = 0$
+  for the exponential valuation $v_Q$ associated to $Q$,
+\item for all prime ideals $Q$ over $p\in S$ we have $v_Q(\alpha) = v_Q(A)$.
+\end{itemize}
+\end{definition}
+
+A direct application of the Chinese remainder theorem shows the existence of such normal presentations.
+The algorithmic importance comes from the following result.
+
+\begin{theorem}
+Let $A = \langle a, \alpha \rangle$ be an ideal in $S$-normal presentation. Then the following hold:
+\begin{enumerate}
+\item We have $N(A) = \gcd(a^n, N(\alpha))$
+\item If $B = \langle b, \beta\rangle$ is a second ideal in $S$-normal
+presentation for the same set $S$, then
+$AB = \langle ab, \alpha\beta\rangle$ is also a $S$-normal presentation.
+\item Let $\gamma = 1/\alpha$, $\langle g\rangle = \alpha \mathcal O_K \cap \ZZ$,
+ $g = g_1g_2$ with coprime $g_1$, $g_2$ and $g_2$ only divisible be primes not in $S$. Then $A^{-1} = \langle 1, g_2\gamma\rangle$ is a $S$-normal presentation.
+\item If $p$ is a prime number and $P= \langle p, \theta\rangle$ a prime ideal over $p$
+in $\{p\}$-normal presentation, then the $\{p\}$-normal presentation
+of $P^{-1} = \langle 1, \gamma\rangle$ yields a valuation element, that is,
+$v_P(\beta) = \max\{ k \mid \gamma^k\beta\in \mathcal O_K\}$ for all $\beta \in \mathcal O_K$.
+\end{enumerate}
+\end{theorem}
+
+It should be noted that (almost all) prime ideal are naturally computed
+in $\{p\}$-normal presentation. The key problem in using the theorem for
+multiplication lies in the fact that both ideals need to be giving by a $S$-normal presentation for
+the same set $S$, which traditionally is achieved by recomputing
+a suitable presentation from scratch, taking random candidates for the
+second generator until it works. Based on the following lemma, have developed a new algorithm that does it at the cost 
+of a few integer operations only.
+
+\begin{lemma}
+Let $S$ be a finite set of prime numbers and $A=\langle a, \alpha\rangle$ an ideal in
+$S$-normal presentation. Let $T$ be a second set of primes and set
+$s = \prod_{x\in S} x$ as well as $t = \prod_{x\in T\setminus S} x$. If $1 = \gcd(as, t) = uas + vt$,
+then $\langle a, \beta \rangle$ is a $S\cup T$-normal presentation, where $\beta = vt\alpha + uas$.
+\end{lemma}
+
+\begin{proof}
+By definition, $a$ has only prime divisors in $S$, so $as$ and $t$ are coprime.
+Also, $a$ is a possible first generator for the $S\cup T$-normal presentation.
+Let $P$ be a prime ideal over a prime $p\in S$, then
+$v_P(\beta) = v_P(\alpha)= v_P(A)$ since $v_P(A) <v_P(s)+v_P(a)$ due to $v_P(s)\ge 1$ and $v_P(a) \ge v_P(A)$ by definition.
+For $P$ coming from $T\setminus S$, we have $v_P(\beta) = 0$ since $v_P(t)\ge 1$ and $v_P(uas) = 0$ as well.
+\end{proof}
+
+Using this lemma on both input ideals, we can get compatible $S$-normal 
+presentations at the cost of two $\gcd$ computations, a few pure integer multiplications and two products of integers with algebraic numbers. The final ideal
+multiplication is then a single integer product and a single product of
+algebraic numbers. Thus the asymptotic cost is that of a single multiplication of two algebraic numbers.
+In contrast, all previous algorithms required some linear algebra step.
+
+Finally, we improve on the computation of a $S$-normal presentation.
+
+\begin{lemma}
+If $0\ne\alpha\in \mathcal O_K$, then $\langle\alpha\rangle\cap \mathbb Z = \langle d\rangle$ where $d>0$ is minimal such that $d/\alpha\in \mathcal O_K$.
+\end{lemma}
+
+\begin{theorem}[\cite{Pohst1997}]
+Let $A$ be a nonzero ideal. Then
+$(a, \alpha)$ is an $\{p \text{ prime} \mid p \text{ divides }a\}$-normal presentation for $A$ if and only if
+for $d = \min \alpha\mathcal O_K \cap \NN$ we have
+\[ \gcd(a, \frac{d}{\gcd(a, d)}) = 1.\]
+\end{theorem}
+
+Together with the above lemma, this allows for the rapid computation of a
+normal presentation: Choose $\alpha\in A$ at random until a normal presentation
+is obtained. It can be shown that, unless $a$ involves many ideals of small
+norm, this is very efficient.
+
+To illustrate the speed of our algorithm, we created a list of ideals of bounded norm (here: 400) and
+took random products of 100 ideals in the field
+defined by the polynomial $X^n + 2$ for $n=16, 32, 64, 128$.
+The results are presented in the following table.
+Times are given in seconds. A dash indicates that the computation took  more than 20 seconds.
+\begin{center}
+\begin{tabular}{c||c|c|c|c}
+$n$ & 16 & 32 & 64 & 128 \\\hline
+Magma & 14 & -& - & -        \\
+Pari & 0.05 & 0.18 & 0.96 & 5.4 \\
+Hecke & 0.02 & 0.04 & 0.06 & 0.08
+\end{tabular}
+\end{center}
+
+%%
+%% Pari:
+%% #
+%% n = nfinit(x^128+2);
+%% p = 2
+%% a = List([])
+%% for(i=1, 100, j = idealprimedec(n, p); for(l=1, length(j), if(idealnorm(n, j[l]) < 400, listput(a, j[l]))); p = nextprime(p+1))
+%% 
+%% z = a[1]
+%% for(i=1, 100, z = idealmul(n, z, a[1+random(length(a))]))
+%%
+%% Magma:
+%% K := NumberField(x^16+2);
+%% M := MaximalOrder(K);
+%% F := FactorBasis(M, 400);
+%% z := F[1];
+%% time for i:= 1 to 10 do z *:= Random(F); end for;
+%%
+%% Hecke:
+%% Qx, x = QQ["x"];
+%% K, a  = NumberField(x^64+2);
+%% O = maximal_order(K);
+%% const B = Hecke.NfFactorBase(), 400; complete = false, degree_limit = 0)
+%% z = B.ideals[1]
+%% @time for i=1:100 z *= rand(B.ideals); end;
+
+\subsection{The use of interval arithmetic}
+
+While algebraic number fields and their elements have by definition a very algebraic character, very often one is forced to study these discrete objects in a real or complex setting, e.g. when using embeddings into an algebraically closed field or Dedekind zeta functions.
+The necessity to do this can be twofold. On the one hand it could be an intrinsic property of the problem, and on the other hand it could be the fastest (known) way to solve a particular problem.
+But no matter what the reason is, leaving the realm of discrete objects usually comes at the prize of working with approximations and all kinds of related complications.
+We give a few examples of such instances and show, how the ball arithmetic provided by Arb is employed in Hecke to make working with these real and complex objects like a breeze.
+
+\subsubsection{Computing conjugates}\label{subsub:conj}
+
+Let $K = \QQ[X]/(f)$ be an algebraic number field, where $f \in \QQ[X]$ is an irreducible polynomial of degree $d$.
+We represent the elements of $K$ as polynomials of degree less than $d$.
+Denoting by $\alpha_1,\dotsc,\alpha_d \in \CC$ the roots of $f$ in $\CC$, the distinct embeddings $K \to \CC$ are given by $\sigma_i \colon K \to \CC, \bar X \mapsto \alpha_i$. For an element $\alpha$ of $K$ the complex numbers $\sigma_i(\alpha)$, $1 \leq i \leq d$ are called the conjugates of $\alpha$.
+Since for $\alpha \in K \setminus \QQ$ the conjugates are irrational, it is clear that we cannot do exact computations with these objects but have to rely on approximation techniques.
+In Hecke this is done using ball arithmetic. Let $\alpha = \sum a_j X^j$ be an element of $K$. 
+Assume that we want to find $\hat \sigma_i(\alpha) \in \RR$ with $\lvert \sigma_i(\alpha) - \hat \sigma_i(\alpha) \rvert \leq 2^{-p}$ for some precision $p \in \ZZ_{\geq 1}$.
+Using Arb's polynomial root finding functionality and some initial precision $p' \geq p$ we can find balls $B_{p'}^{(i)} \subseteq \RR$ such that $\alpha_i \in B_{p'}^{(i)}$ and $\operatorname{diam}(B_{p'}^{(i)}) \leq 2^{-p'}$.
+Ball arithmetic then yields balls $B_\alpha^{(i)} \subseteq \RR$ with
+\[ \sigma_i(\alpha) = \sum_{1 \leq j \leq d} a_j \alpha_i^j \in \sum_{1 \leq j \leq d} a_j (B_{p'}^{(i)})^j\subseteq B_\alpha^{(i)}. \]
+Finally we check whether $\operatorname{diam}(B_\alpha^{(i)}) \leq 2^{-p}$. If this is not the case, we increase the working precision $p'$ and repeat the steps.
+When finished, the midpoints of the balls $B_\alpha^{(i)}$ are approximations $\hat \sigma_i(\alpha)$ with the desired property.
+The following code shows how this can be implemented in Hecke.
+
+\begin{verbatim}
+QQx, x = PolynomialRing(QQ, "x")
+K, a = NumberField(x^3 + 3*x + 1, "a")
+alpha = a^2 + a + 1
+p = 128
+p' = p
+
+while true
+  CCy, y = PolynomialRing(AcbField(p'), "y")
+  g = CCy(x^3 + 3*x + 1)
+  rts = roots(g)
+  z = map(x^3 + x + 1, rts)
+  if all([ radiuslttwopower(u, -p) for u in z])
+    break
+  else
+    p' = 2*p'
+  end
+end
+\end{verbatim}
+
+Performing the same task using only floating point arithmetic requires a priori error analysis to obtain the precision necessary for a correct result.
+Since through the use of ball arithmetic the problem of keeping track of errors is delegated to Arb, this allows for quick development of algorithms working with conjugates, which at the same time yield guaranteed results.
+
+\subsubsection{Torsion units}
+
+For an algebraic number field $K$ of degree $d$, the set $\{ \alpha \in K^\times \mid \exists n \in \ZZ_{\geq 1} \colon \alpha^n = 1 \}$ of torsion units is a finite cyclic subgroup of $K^\times$, which plays an important role
+when investigating the unit group of the ring of integers of $K$.
+In particular for a given $\alpha \in K^\times$ it is important to quickly decide whether it is a torsion unit.
+A list of possible integers $n$ with $\alpha^n = 1$ can be obtained as follows:
+If $\alpha$ is a torsion unit, then $\alpha$ is a primitive $k$-th root of unity for some $k$.
+In particular $K$ contains the $k$-th cyclotomic field and $\varphi(k)$ divides $n$.
+Since there are only finitely many $k$ with the property that $\varphi(k)$ divides $n$, for every such $k$ we can test $\alpha^k = 1$ and in this way decide whether $\alpha$ is a torsion unit.
+While this works well for small values of $n$, for large $n$ this quickly becomes inefficient.
+
+A second approach rests on the fact that torsion units are characterized by their conjugates: An element $\alpha$ is a torsion unit if and only if $\lvert \sigma_i(\alpha) \rvert = 1$ for $1 \leq i \leq d$.
+Although we can compute approximations of conjugates with arbitrary precision, since conjugates are in general irrational, it is not possible test whether they (or their absolute value) are equal to $1$.
+Nevertheless we can bring conjugates into play using the following result of Dobrowolski~\cite{Dobrowolski1978}, which bounds the modulus of conjugates of non-torsion units.
+
+\begin{lemma}
+If $\alpha$ is not a torsion unit, then there exists some $1 \leq i \leq k$ such that
+\[ \left(1 + \frac 1 6 \frac{\log(d)}{d^2} \right) < \lvert \sigma_k(\alpha) \rvert. \]
+\end{lemma}
+
+We can rephrase this using approximation as follows.
+
+\begin{lemma}\label{lem:tor}
+  Let $(B^{(i)}_k)_{k \geq 1}$, $1 \leq i \leq d$, be sequences of real balls with $\lvert \sigma_i(\alpha) \rvert \in B^{(i)}_k$ and $\max_i\operatorname{diam}(B_k^{(i)}) \to 0$ for $k \to \infty$.
+  \begin{enumerate}
+  \item
+    If the element $\alpha$ is torsion, there exists $k \geq 1$ such that $1 < B_k^{(i)}$ for some $1 \leq i \leq d$.
+  \item
+    If the element $\alpha$ is non-torsion, there exists $k \geq 1$ such that $B_k^{(i)} < 1 + \log(d)/(6d^2)$ for all $1 \leq i \leq d$.
+  \end{enumerate}
+\end{lemma}
+
+It is now straight forward to turn this into an algorithm for testing whether $\alpha$ is torsion: Approximate the conjugates of $\alpha$ using balls as in~\ref{subsub:conj} for some starting precision $p \geq 1$ and check if one of the statements of Lemma~\ref{lem:tor} hold.
+If not, then we increase the precision and start all over.
+Since the radii of the balls tend to $0$, by Lemma~\ref{lem:tor} the algorithm will eventually terminate.
+
+\subsubsection{Residues of Dedekind zeta functions}
+
+For a number field $K$ and $s \in \CC$, $\operatorname{Re}(s) > 1$, the Dedekind zeta function of $K$ is defined as
+\[ \zeta_K(s) = \sum_{\{0\} \neq I \subseteq \mathcal O_K} \frac 1 {N(I)^s}, \]
+where the sum is over all nonzero ideals of the ring of integers $\mathcal O_K$ of $K$.
+This function has an analytic continuation to the whole complex plane with a simple pol at $1$. The celebrated analytic class number formula (see~\cite{Cohen1993}) states that the residue at that pole encodes important arithmetic data of $K$:
+\[ \operatorname{res}(\zeta_K, 1) =\lim_{s \to 1}(s - 1)\zeta_K(s) = h_K \cdot \mathrm{reg}_K \cdot c_K, \]
+where $h_K$ is the class number, $\mathrm{reg}_K$ the regulator and $c_K$ another (easy to determine) constant depending on $K$.
+While this is an intriguing result from a theoretical point of view, it is also an important tool during class group computations.
+By approximating the residue the class number formula allows one to certify that tentative class and unit groups are in fact correct (see \cite{Biasse2014}).
+
+We describe the approximation under GRH using an algorithm of Belabas and Friedmann~\cite{Belabas2015}, but it is also possible with results from Schoof~\cite{Schoof1982} or Bach~\cite{Bach1995}.
+Since the aim is to illustrate the use of ball arithmetic, we will not give detailed formulas for the approximation or the error.
+
+\begin{theorem}[Belabas-Friedmann]
+There exists functions $g_K$, $\varepsilon_K \colon \RR \to \RR$, with
+\[ \lvert \log(\operatorname{res}(\zeta_K, 1)) - g_K(x) \rvert \leq \varepsilon_K(x) \]
+for all $x \geq 69$. The evaluation of $g_K(x)$ involves only prime powers $p^m \leq x$ and prime ideal powers $\mathfrak p^m$ with $N(\mathfrak p^m) \leq x$.
+Moreover the function $\varepsilon_K$ is strictly decreasing and depends only on the degree and the discriminant of $K$.
+\end{theorem}
+
+Assume now that $\varepsilon > 0$ and we want to find $z \in \RR$ such that
+\[ \lvert \log(\operatorname{res}(\zeta_K, 1)) - z \rvert \leq \varepsilon.\]
+We first compute an $x_0$ such that $\varepsilon_K(x_0) < \varepsilon/2$. Note that since $\varepsilon_K$ is strictly decreasing, this can be done using ordinary floating point arithmetic with appropriate rounding modes.
+Once we have this value we compute a real ball $B$ with $g_K(x_0) \in B$ and $\operatorname{diam}(B) \leq \varepsilon/2$ (as usual we start with some initial precision and increase it until the the radius of the ball is small enough).
+By the choice of $x_0$, the midpoint of $B$ will be an appropriate approximation to the logarithm of the residue with error at most $\varepsilon$.
+Again this yields a guaranteed result, while at the same time we have avoided any kind of error analysis (such an error analysis will be very tedious due to the form of $g_K$).
+
 \section{C/C++ wrappers in Nemo}
 
 \subsection{Flint: arithmetic and number theory}
@@ -771,6 +1044,52 @@ generic rings to be defined over Singular coefficient rings and polynomial rings
 
 \begin{thebibliography}{99}
 
+\bibitem{Bach1995}
+E.~Bach.
+\newblock Improved approximations for {E}uler products.
+\newblock In {\em Number theory ({H}alifax, {NS}, 1994)}, volume~15 of {\em CMS
+  Conf. Proc.}, pages 13--28. Amer. Math. Soc., Providence, RI, 1995.
+
+\bibitem{Belabas2004}
+K.~Belabas.
+\newblock Topics in computational algebraic number theory.
+\newblock {\em J. Th\'eor. Nombres Bordeaux}, 16(1):19--63, 2004.
+
+\bibitem{Belabas2015}
+K.~Belabas and E.~Friedman.
+\newblock Computing the residue of the {D}edekind zeta function.
+\newblock {\em Math. Comp.}, 84(291):357--369, 2015.
+
+\bibitem{Biasse2014}
+J.-F. Biasse and C.~Fieker.
+\newblock Subexponential class group and unit group computation in large degree
+  number fields.
+\newblock {\em LMS J. Comput. Math.}, 17(suppl. A):385--403, 2014.
+
+\bibitem{Cohen1993}
+H.~Cohen.
+\newblock {\em A course in computational algebraic number theory}, volume 138
+  of {\em Graduate Texts in Mathematics}.
+\newblock Springer-Verlag, Berlin, 1993.
+
+\bibitem{Dobrowolski1978}
+E.~Dobrowolski.
+\newblock On the maximal modulus of conjugates of an algebraic integer.
+\newblock {\em Bull. Acad. Polon. Sci. S\'er. Sci. Math. Astronom. Phys.},
+  26(4):291--292, 1978.
+
+\bibitem{Pohst1997}
+M.~Pohst and H.~Zassenhaus.
+\newblock {\em Algorithmic algebraic number theory}.
+\newblock Cambridge University Press, Cambridge, 1997.
+
+\bibitem{Schoof1982}
+R.~J. Schoof.
+\newblock Quadratic fields and factorization.
+\newblock In {\em Computational methods in number theory, {P}art {II}}, volume
+  155 of {\em Math. Centre Tracts}, pages 235--286. Math. Centrum, Amsterdam,
+  1982.
+
 \bibitem{magma}
 J. J. Cannon, W. Bosma (Eds.) {\em Handbook of Magma Functions}, Edition 2.13 (2006)
 
@@ -796,6 +1115,8 @@ W. Stein {\em SageMath Mathematics Software}.  \url{http://www.sagemath.org}
 
 \bibitem{singular} W. Decker, G. M. Greuel, G. Pfister and H. Sch\"onemann. {\em Singular} --- A computer algebra system for polynomial computations. \url{http://www.singular.uni-kl.de}
 
+%\bibliographystyle{abbrv}
+%\bibliography{issac}
 \end{thebibliography}
 \end{document}
 
