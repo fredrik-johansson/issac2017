@@ -352,7 +352,6 @@ to large, nested objects.
 Nemo objects are immutable, but local mutation is
 acceptable while an object is being created,
 and Nemo provides special methods for this purpose.
-
 Instead of writing
 \begin{verbatim}
 s += a * b
@@ -367,25 +366,28 @@ addeq!(s, t)
 which creates no new objects and avoids making a copy of the data in \texttt{s}
 that is not being modified.
 
-In Julia, in-place operators save not only memory allocation overheads, but also
+In Julia, in-place operators save not only memory allocation and copying
+overheads, but also
 garbage collection costs, which may be substantial in the worst case.
 
 \subsection{Polynomial algorithms}
 
+For generic coefficient rings, Nemo implements dense univariate polynomials,
+power series (supporting both relative and absolute precision models),
+and multivariate polynomials in sparse distributed format.
+Most of the polynomial algorithms are standard, but there are a few notable tricks.
+
 The generic polynomial resultant code in Nemo computes the resultant using subresultant
 pseudoremainder sequences. This code can even be called for polynomials over a
 ring with zero divisors, so long as impossible inverses are caught. The exception
-can be caught using a try/catch block in Julia and a fallback method called, e.g.
+can be caught using a try/catch block in Julia and a fallback method called, e.g.\
 the resultant can be computed using Sylvester matrices. This allows an algorithm
 with quadratic complexity to be called generically, with an algorithm of cubic
 complexity only called as backup.
 
-Nemo implements both relative and absolute power series. 
-
-Nemo also provides a module for generic multivariate polynomials in sparse distributed
-format. We make use of variants of the sparse algorithms described by Monagan and
+We make use of variants of the sparse algorithms described by Monagan and
 Pearce for heap-based multiplication \cite{heapmul}, exact division and division with
-remainder \cite{heapdiv} and powering \cite{heappow}. For powering of polynomials with
+remainder \cite{heapdiv} and powering~\cite{heappow}. For powering of polynomials with
 few terms, we make use of the multinomial formula.
 
 In the case of pseudodivision for sparse, multivariate polynomials, we extract one
@@ -427,7 +429,7 @@ algorithms over an integral domain. For example, fraction free Gaussian eliminat
 for LU decomposition, inverse, determinant and reduced row echelon form
 are well-known.
 
-In addition we have been able to use this strategy in the computation
+We have also been able to use this strategy in the computation
 of the characteristic polynomial. We have adapted the well-known 1937 method
 of Danilevsky for computing the characteristic polynomial, into a fraction-free
 version.
