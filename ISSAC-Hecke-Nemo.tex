@@ -82,24 +82,48 @@ univariate polynomial rings, power series rings, residue rings (modulo principal
 fraction fields, matrices and more recently multivariate polynomials with a sparse
 distributed representation.
 
-\subsection{The Julia programming language}
+The contribution of our work is twofold. First, we demonstrate
+that Julia is effective for implementing high performance computer
+algebra algorithms. Second, our implementations
+include a number of
+improvements over the state of the art
+in existing computer algebra systems.
+
+This paper is structured as follows.
+Section~\ref{sect:domains} discusses our motivation
+for using Julia
+and our approach to modelling mathematical domains in Julia.
+Section~\ref{sect:nemo} presents basic use of Nemo with
+examples and benchmarks.
+In sections \ref{sect:generic} and \ref{sect:wrappers},
+we discuss in more detail the generic algorithms and C/C++ wrappers
+implemented in Nemo.
+Finally, section~\ref{sect:hecke} discusses Hecke, a Julia
+package that builds on Nemo to cover
+algebraic number theory.
+
+\section{Julia for computer algebra}
+\label{sect:domains}
 
 Julia \cite{julia} is a sophisticated, modern programming language which is designed
 to be both performant and flexible. Julia was written for technical computing with a
 focus on numerics. However, it has found widespread use for general purpose
-applications, largely due to its innovative type system, dispatch mechanism, JIT
-compilation and metaprogramming capabilities.
-The benefits of Julia include:
+applications.
+Notable features include an innovative type system
+(with support for parametric types and multiple dispatch),
+just-in-time (JIT) compilation
+supported by dynamic type inference,
+and powerful metaprogramming capabilities.
+In addition, Julia has an efficient native C interface, and more recently an experimental C++ interface.
 
-\begin{itemize}
-\item Familiar imperative syntax (like Python and Matlab), including support for operator overloading.
-\item An interactive console, as well as Jupyter support (for web based notebooks).
-\item Parametric types, multiple dispatch, and powerful metaprogramming facilities.
-\item Just-In-Time compilation, supported by dynamic type inference.
-\item Automatic memory management (garbage collection).
-\item An efficient native C interface, and more recently an experimental C++ interface.
-\item High performance collection types (dictionaries, iterators, arrays, etc.) and a powerful standard library.
-\end{itemize}
+Julia has a familiar imperative syntax (like Python and Matlab),
+including support for operator overloading.
+It includes high performance collection types (dictionaries, iterators, arrays, etc.),
+automatic memory management (garbage collection) and comes with a powerful
+standard library.
+In addition, Julia provides an interactive console and support for Jupyter notebooks.
+These features enable rapid development and make Julia
+convenient as a user language.
  
 One of the most important features from a mathematical point of view is Julia's parametric type system.
 For example, in Julia, an array of integers has type \texttt{Array\{Int, 1\}} (the 1 refers to the dimensions
@@ -110,7 +134,7 @@ over a ring $R$ have type \texttt{GenPoly\{T\}} where $T$ is the type of element
 Parametric types bear some resemblance to C++ template classes, except that in Julia the type $T$ can
 be constrained to belong to a specified class of types.
 
-\section{Modelling domains in Julia}
+\subsection{Modelling domains in Julia}
 
 Julia provides two levels of types that we make use of: abstract and concrete types.
 Concrete types are as per the types that appear in languages such as Java, C or C++,
@@ -188,6 +212,7 @@ parent objects can be passed directly to C functions. Additional fields in these
 appended if it is desirable to retain more information at the Julia level than the C/C++ level.
 
 \section{Nemo: basic arithmetic in Julia}
+\label{sect:nemo}
 
 Julia was designed with high performance numerical algorithms in mind, and provides near
 C or Fortran performance for low-level arithmetic. This allows low-level algorithms to be
@@ -339,6 +364,7 @@ This takes 5893~s in SageMath~6.8, 21.9~s in Pari/GP~2.7.4 \cite{pari}, 5.3~s in
 and 2.4~s in Nemo-0.4.
 
 \section{Generic algorithms in Nemo}
+\label{sect:generic}
 
 Many high level algorithms in number theory and computer algebra rely on
 the efficient implementation of fundamental algorithms.
@@ -553,6 +579,7 @@ an efficient version over $\mathbb{Z}$ using the Chinese remaindering trick
 is implemented in Flint and made available in Nemo.
 
 \section{C/C++ wrappers in Nemo}
+\label{sect:wrappers}
 
 \subsection{Flint: arithmetic and number theory}
 
@@ -675,6 +702,7 @@ To facilitate delayed reduction, all Antic number field elements are allocated w
 sufficient space to store a full polynomial product, rather than the reduction of such a product.
 
 \section{Hecke: algebraic number theory in Julia}
+\label{sect:hecke}
 
 Hecke is a tool for algebraic number theory, written in the Julia programming language.
 Initially developed during the DFG priority project SPP 1489, Hecke includes the following functionality:
