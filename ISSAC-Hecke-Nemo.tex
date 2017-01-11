@@ -69,7 +69,8 @@ arithmetic.
 
 \section{Introduction}
 
-Nemo is a computer algebra package for the Julia programming language. The eventual aim is
+Nemo\footnote{\url{http://nemocas.org}} is a computer algebra package for the Julia programming language.
+The eventual aim is
 to provide highly performant commutative algebra, number theory, group theory and discrete
 geometry routines.
 
@@ -92,9 +93,8 @@ in existing computer algebra systems.
 This paper is structured as follows.
 Section~\ref{sect:domains} discusses our motivation
 for using Julia
-and our approach to modelling mathematical domains in Julia.
-Section~\ref{sect:nemo} presents basic use of Nemo with
-examples and benchmarks.
+and our approach to implementing mathematical structures in Julia.
+Basic use of Nemo is demonstrated with a few benchmark examples.
 In sections \ref{sect:generic} and \ref{sect:wrappers},
 we discuss in more detail the generic algorithms and C/C++ wrappers
 implemented in Nemo.
@@ -124,6 +124,12 @@ standard library.
 In addition, Julia provides an interactive console and support for Jupyter notebooks.
 These features enable rapid development and make Julia
 convenient as a user language.
+
+Julia was designed with high performance numerical algorithms in mind, and provides near
+C or Fortran performance for low-level arithmetic. This allows low-level algorithms to be
+implemented in Julia itself. However, for us, the main advantage of Julia is its ability
+to JIT compile generic algorithms for specific types, in cases where a specific
+implementation does not exist in C.
  
 One of the most important features from a mathematical point of view is Julia's parametric type system.
 For example, in Julia, an array of integers has type \texttt{Array\{Int, 1\}} (the 1 refers to the dimensions
@@ -211,21 +217,44 @@ by C libraries. As Julia objects can have precisely the same bit representation 
 parent objects can be passed directly to C functions. Additional fields in these objects can be safely
 appended if it is desirable to retain more information at the Julia level than the C/C++ level.
 
-\section{Nemo: basic arithmetic in Julia}
+\subsection{Generic and specialised types}
+
+\subsection{In-place operations}
+
+C libraries such as GMP/MPIR and Flint allow mutating
+objects in-place, which improves performance
+especially when making incremental updates
+to large, nested objects.
+Nemo objects are immutable, but local mutation is
+acceptable while an object is being created,
+and Nemo provides special methods for this purpose.
+Instead of writing
+\begin{verbatim}
+s += a * b
+\end{verbatim}
+in Nemo, which creates an object for \texttt{a * b}
+and then replaces \texttt{s} with yet another new object, we
+create a reusable scratch variable \texttt{t} with the same type as \texttt{a}, \texttt{b} and \texttt{s} and use
+\begin{verbatim}
+mul!(t, a, b)
+addeq!(s, t)
+\end{verbatim}
+which creates no new objects and avoids making a copy of the data in \texttt{s}
+that is not being modified.
+
+In Julia, in-place operators save not only memory allocation and copying
+overheads, but also
+garbage collection costs, which may be substantial in the worst case.
+
+\subsection{Nemo examples}
 \label{sect:nemo}
 
-Julia was designed with high performance numerical algorithms in mind, and provides near
-C or Fortran performance for low-level arithmetic. This allows low-level algorithms to be
-implemented in Julia itself. However, for us, the main advantage of Julia is its ability
-to JIT compile generic algorithms for specific types, in cases where a specific
-implementation does not exist in C. 
-
-In this section, we present a few code examples which double as
+We present a few Nemo code examples which double as
 benchmark problems.
 Additional benchmarks are available
 at \url{http://nemocas.org/benchmarks.html}.
 
-\subsection{Multivariate polynomials}
+\subsubsection{Multivariate polynomials}
 
 We first consider arithmetic in $\mathbb{Z}[x_1,\ldots,x_k]$.
 The Fateman benchmark consists of computing
@@ -241,9 +270,11 @@ f*(f+1)
 Table~\ref{tab:fateman} shows timing results compared to
 SageMath~7.4, Magma~V2.22-5 and Giac-1.2.2
 on a 2.2~GHz AMD Opteron 6174.
+All times are given in seconds.
+
 We used sparse multivariate polynomials in all
 cases (this benchmark could also be performed
-using nested univariate arithmetic, i.e. in $\mathbb{Z}[x][y][z][t]$).
+using nested univariate arithmetic, i.e.\ in $\mathbb{Z}[x][y][z][t]$).
 
 Nemo (generic) is our implementation of Johnson's sparse
 multiplication algorithm for generic coefficients in Julia.
@@ -268,7 +299,7 @@ so only the Johnson algorithm is used.
 
 \begin{table}
 \center
-\caption{Time (s) on the Fateman benchmark.}
+\caption{Time on the Fateman benchmark.}
 \begin{small}
 \setlength{\tabcolsep}{2.5pt}
 \renewcommand{\arraystretch}{1.2}
@@ -293,7 +324,7 @@ and even runs slightly faster than the C code in Magma.
 
 \begin{table}
 \center
-\caption{Time (s) on the Pearce benchmark.}
+\caption{Time on the Pearce benchmark.}
 \begin{small}
 \setlength{\tabcolsep}{2.5pt}
 \renewcommand{\arraystretch}{1.2}
@@ -312,7 +343,7 @@ $n$ & SageMath & Magma & Nemo & Flint & Flint & Giac \\
 \end{small}
 \end{table}
 
-\subsection{Generic resultant}
+\subsubsection{Generic resultant}
 
 The following example computes a resultant
 in the ring $((\operatorname{GF}(17^{11})[y])/(y^3 + 3xy + 1))[z]$,
@@ -336,7 +367,7 @@ resultant(s, t)
 This example takes 179907~s in SageMath~6.8, 82 s in Magma V2.21-4
 and 0.2 s in Nemo-0.4.
 
-\subsection{Generic linear algebra}
+\subsubsection{Generic linear algebra}
 
 We compute the determinant of a random $80\times80$ matrix
 with entries in a cubic number field.
@@ -368,40 +399,14 @@ and 2.4~s in Nemo-0.4.
 
 Many high level algorithms in number theory and computer algebra rely on
 the efficient implementation of fundamental algorithms.
-
-\subsection{In-place operations}
-
-C libraries such as GMP/MPIR and Flint allow mutating
-objects in-place, which improves performance
-especially when making incremental updates
-to large, nested objects.
-Nemo objects are immutable, but local mutation is
-acceptable while an object is being created,
-and Nemo provides special methods for this purpose.
-Instead of writing
-\begin{verbatim}
-s += a * b
-\end{verbatim}
-in Nemo, which creates an object for \texttt{a * b}
-and then replaces \texttt{s} with yet another new object, we
-create a reusable scratch variable \texttt{t} with the same type as \texttt{a}, \texttt{b} and \texttt{s} and use
-\begin{verbatim}
-mul!(t, a, b)
-addeq!(s, t)
-\end{verbatim}
-which creates no new objects and avoids making a copy of the data in \texttt{s}
-that is not being modified.
-
-In Julia, in-place operators save not only memory allocation and copying
-overheads, but also
-garbage collection costs, which may be substantial in the worst case.
+In this section, we discuss some of the algorithms
+implemented in Nemo for generic polynomials and matrices.
 
 \subsection{Polynomial algorithms}
 
 For generic coefficient rings, Nemo implements dense univariate polynomials,
 power series (supporting both relative and absolute precision models),
 and multivariate polynomials in sparse distributed format.
-Most of the polynomial algorithms are standard, but there are a few notable tricks.
 
 The generic polynomial resultant code in Nemo computes the resultant using subresultant
 pseudoremainder sequences. This code can even be called for polynomials over a
@@ -663,18 +668,17 @@ would be an interesting future project.
 
 Antic (Algebraic Number Theory in C) is a C library, depending on Flint, for
 doing efficient computations in algebraic number fields. 
-
-Nemo makes use of Antic for speeding up number field element arithmetic. We briefly describe some
+Nemo uses Antic for number field element arithmetic. We briefly describe some
 of the techniques Antic uses for fast arithmetic, but
 refer the reader to the article \cite{antic} for full details.
 
 Antic represents number field elements as Flint polynomials thereby benefiting
 from the highly optimised polynomial arithmetic in Flint. However, a few
-additional tricks employed.
+additional tricks used.
 
 Firstly, Antic makes a number of precomputations which are stored in a context
 object to speed up subsequent computations with number field elements. Number field parent
-objects at the Nemo level consist precisely of these context objects.
+objects in Nemo consist precisely of these context objects.
 
 The first is a precomputed inverse of the leading coefficient of the defining
 polynomial of the number field. This helps speed up reduction modulo the defining polynomial.
@@ -689,7 +693,7 @@ are the roots of the defining polynomial $f(x)$. These traces are precomputed us
 recursive formulae as described in \cite{Cohen1993}. They are
 used to speed up the computation of traces of elements of the number field.
 
-Norms of elements of number fields are computed using resultants, for which we make use of
+Norms of elements of number fields are computed using resultants, for which we use
 the fast polynomial resultant code in Flint. Inverses of elements are computed using the fast polynomial
 extended GCD implementation in Flint.
 
