@@ -70,7 +70,8 @@ arithmetic.
 \section{Introduction}
 
 Nemo is a computer algebra package for the Julia programming language. The eventual aim is
-to provide highly performant commutative algebra, number theory and group theory routines.
+to provide highly performant commutative algebra, number theory, group theory and discrete
+routines.
 
 Nemo consists of two parts: wrappers of specialised C/C++
 libraries (Flint \cite{flint}, Arb \cite{arb}, Antic \cite{antic} and Singular
@@ -116,7 +117,7 @@ be constrained to belong to a specified class of types.
 
 \section{Modelling domains in Julia}
 
-Julia provides two levels of types that we make use of abstract types and concrete types.
+Julia provides two levels of types that we make use of: abstract types and concrete types.
 Concrete types are equivalent to the types that appear in languages such as Java, C or C++,
 etc.
 
@@ -179,8 +180,8 @@ like types, but are in fact ordinary Julia objects. As ordinary objects, parents
 arbitrary information, such as the modulus in $\mathbb{Z}/n\mathbb{Z}$. Each element in the ring
 $\mathbb{Z}/n\mathbb{Z}$ then contains a pointer to the relevant parent object.
 
-This model of mathematical parent objects is taken from SageMath which in turn followed the Magma
-computer algebra system.
+This model of mathematical parent objects is taken from SageMath \cite{sage} which in turn followed
+the Magma \cite{magma} computer algebra system.
 
 Julia allows ordinary objects to be made callable. We make use of the facility to write coercions
 and constructors for elements of mathematical domains in Nemo/Hecke. For example, the following
@@ -205,7 +206,7 @@ speed as a low-level C or Fortran algorithm.
 It is remarkable that the performance of Julia is so close to C in the optimum case that
 it is possible to implement fast basic arithmetic in Julia itself. We view the main
 advantage of Julia as the ability to implement fast generic algorithms, for which a specific
-implementation does not exist in C. But it is also quite convenient to prototype low level
+implementation does not exist in C. It is also quite convenient to prototype low level
 algorithms in Julia and then port this to low level, hand optimised C with manual memory
 management at a later stage.
 
@@ -374,17 +375,13 @@ end
 det(M)
 \end{verbatim}
 
-This takes 5893~s in SageMath~6.8, 21.9~s in Pari/GP~2.7.4, 5.3~s in Magma V2.21-4,
+This takes 5893~s in SageMath~6.8, 21.9~s in Pari/GP~2.7.4 \cite{pari}, 5.3~s in Magma V2.21-4,
 and 2.4~s in Nemo-0.4.
 
 \section{Generic algorithms in Nemo}
 
 Many high level algorithms in number theory and computer algebra rely on
 the efficient implementation of fundamental algorithms.
-
-\subsection{Generic functions}
-
-Maybe talk about how they are defined and how type dispatch works here?
 
 \subsection{In-place operations}
 
@@ -495,7 +492,7 @@ algorithms over an integral domain. For example, fraction free Gaussian eliminat
 for LU decomposition, inverse, determinant and reduced row echelon form
 are well-known.
 
-One place where we have been able to use this strategy is the computation
+In addition we have been able to use this strategy in the computation
 of the characteristic polynomial. We have adapted the well-known 1937 method
 of Danilevsky for computing the characteristic polynomial into a fraction-free
 version.
@@ -516,14 +513,15 @@ Removing such a factor has to be done in a way that respects the
 similarity transforms. We achieve this by making two passes over the matrix
 to remove the common factor.
 
+FIXME: talk about matrix algorithms over rings.
+
 \subsubsection{Minimal polynomial}
 
 Next we describe an algorithm we have implemented for efficient
 computation of minimal polynomial of an $n\times n$ integer matrix $M$.
 
 A standard approach to this problem is known as ``spinning''. 
-We first describe this idea for matrices over a field~$K$, where we have
-in mind the field $\mathbb{Z}/p\mathbb{Z}$ for a prime $p$.
+We first describe this idea for matrices over a field~$K$.
 
 The main idea is to think of $M$ as a linear operator on an $n$-dimensional
 $K$-vector space $V$ and to write $V$ as a sum of invariant subspaces, 
@@ -607,20 +605,17 @@ Of course we know that the associated Krylov subspaces $W_i$ sum to $V$
 because they do so modulo $p$.
 
 We have been informed by personal communication that the algorithm used by
-Magma (\cite{magma}) also uses spinning, however it uses a $p$-adic
+Magma \cite{magma} also uses spinning, however it uses a $p$-adic
 approach over $\mathbb{Z}$. Unfortunately we have not been able to find a
 publication outlining their method.
 
-In practice our multimodular algorithm seems to just outperform Magma on the
+In practice our multimodular algorithm seems to slightly outperform Magma on the
 examples we have tried, including matrices with minimal polynomial smaller 
 than the characteristic polynomial.
 
 A generic version of this algorithm is implemented in Julia code in Nemo, and
 an efficient version over $\mathbb{Z}$ using the Chinese remaindering trick
 is implemented in Flint and made available in Nemo.
-We found it extremely convenient to prototype the generic version first in
-Nemo. We then found it quite easy to implement a C version from the Julia
-implementation.
 
 \section{Hecke: algebraic number theory in Julia}
 
@@ -981,7 +976,7 @@ field element arithmetic only.
 
 Nemo makes use of Antic for speeding up element arithmetic. We briefly describe some
 of the techniques Antic uses for fast arithmetic, and how Nemo interfaces with Antic, but
-refer the reader to the article \cite{anticrundbrief} for full details.
+refer the reader to the article \cite{antic} for full details.
 
 Antic represents number field elements as Flint polynomials and derives much of its speed
 from the highly optimised polynomial arithmetic in Flint. However, there are a few
@@ -1002,7 +997,7 @@ where one wants to compute $g(x)h(x) \pmod{f(x)}$.
 
 The third precomputation is of traces $S_k = \sum_{i=1}^n \theta_i^k$ where the $\theta_i$
 are the roots of the defining polynomial $f(x)$. These traces are precomputed using
-recursive formulae as described for example in \cite{cohen}. These precomputed traces are
+recursive formulae as described for example in \cite{Cohen1993}. These precomputed traces are
 used to speed up the computation of traces of elements of the algebraic number field.
 
 Norms of elements of number fields are computed using resultants, for which we make use of
@@ -1020,100 +1015,106 @@ products are first accumulated and their sum can be reduced at the end of the do
 To facilitate this delayed reduction, all Antic number field elements are allocated with
 sufficient space to store a single product, rather the reduction of such a product.
 
-\subsection{Singular: commutative algebra}
-
-We briefly mention the preliminary work of our colleague Oleksandr Motsak, who has written
-a Singular wrapper in Julia.
-
-Singular \cite{singular} is a computer algebra system written in C++ for commutative algebra
-and geometry, with a focus on singularity theory. Julia is able to inteface to C++ using
-the experimental Cxx.jl package, which makes use of the Clang compiler infrastructure to
-compile arbitrary C++ down to the same LLVM bytecode as the Julia compiler. This allows
-for the inclusion of arbitrary inline C++ in Julia functions, including template 
-instantiation at runtime.
-
-The prototype Singular wrapper has been turned into a Julia package called Singular.jl
-\cite{singular.jl}. It provides direct access to the Singular kernel, including its
-Groebner engine and allows both Singular polynomials to be defined over Nemo rings and Nemo
-generic rings to be defined over Singular coefficient rings and polynomial rings.
-
-\section{Future directions}
-
-\section{Acknowledgement}
-
-
 \begin{thebibliography}{99}
 
 \bibitem{Bach1995}
-E.~Bach.
-\newblock Improved approximations for {E}uler products.
-\newblock In {\em Number theory ({H}alifax, {NS}, 1994)}, volume~15 of {\em CMS
-  Conf. Proc.}, pages 13--28. Amer. Math. Soc., Providence, RI, 1995.
+E.~Bach,
+\newblock {\em Improved approximations for {E}uler products},
+\newblock Number theory ({H}alifax, {NS}, 1994), vol. 15, CMS
+  Conference Proceedings, pages 13--28. Amer. Math. Soc., Providence, RI, 1995.
 
 \bibitem{Belabas2004}
-K.~Belabas.
-\newblock Topics in computational algebraic number theory.
-\newblock {\em J. Th\'eor. Nombres Bordeaux}, 16(1):19--63, 2004.
+K.~Belabas,
+\newblock {\em Topics in computational algebraic number theory},
+\newblock J. Th\'eor. Nombres Bordeaux, 16(1):19--63, 2004.
 
 \bibitem{Belabas2015}
-K.~Belabas and E.~Friedman.
-\newblock Computing the residue of the {D}edekind zeta function.
-\newblock {\em Math. Comp.}, 84(291):357--369, 2015.
+K.~Belabas, E.~Friedman.
+\newblock {\em Computing the residue of the {D}edekind zeta function},
+\newblock Math. Comp., 84(291):357--369, 2015.
+
+\bibitem{julia}
+J.~Bezanson, A.~Edelman, S.~Karpinski, V.~B.~Shah, {\em Julia: A fresh approach to numerical computing}, \url{https://arxiv.org/abs/1411.1607}
 
 \bibitem{Biasse2014}
-J.-F. Biasse and C.~Fieker.
-\newblock Subexponential class group and unit group computation in large degree
-  number fields.
-\newblock {\em LMS J. Comput. Math.}, 17(suppl. A):385--403, 2014.
-
-\bibitem{Cohen1993}
-H.~Cohen.
-\newblock {\em A course in computational algebraic number theory}, volume 138
-  of {\em Graduate Texts in Mathematics}.
-\newblock Springer-Verlag, Berlin, 1993.
-
-\bibitem{Dobrowolski1978}
-E.~Dobrowolski.
-\newblock On the maximal modulus of conjugates of an algebraic integer.
-\newblock {\em Bull. Acad. Polon. Sci. S\'er. Sci. Math. Astronom. Phys.},
-  26(4):291--292, 1978.
-
-\bibitem{Pohst1997}
-M.~Pohst and H.~Zassenhaus.
-\newblock {\em Algorithmic algebraic number theory}.
-\newblock Cambridge University Press, Cambridge, 1997.
-
-\bibitem{Schoof1982}
-R.~J. Schoof.
-\newblock Quadratic fields and factorization.
-\newblock In {\em Computational methods in number theory, {P}art {II}}, volume
-  155 of {\em Math. Centre Tracts}, pages 235--286. Math. Centrum, Amsterdam,
-  1982.
+J.-F.~Biasse, C.~Fieker,
+\newblock {\em Subexponential class group and unit group computation in large degree
+  number fields},
+\newblock LMS J. Comput. Math., 17(suppl. A):385--403, 2014.
 
 \bibitem{magma}
-J. J. Cannon, W. Bosma (Eds.) {\em Handbook of Magma Functions}, Edition 2.13 (2006)
+J.~J.~Cannon, W.~Bosma (Eds.), {\em Handbook of Magma Functions}, Edition 2.13 (2006)
+
+\bibitem{Cohen1993}
+H.~Cohen,
+\newblock {\em A course in computational algebraic number theory},
+  Graduate Texts in Mathematics, vol. 138,
+\newblock Springer-Verlag, Berlin, 1993.
+
+\bibitem{singular}
+W.~Decker, G.~M.~Greuel, G.~Pfister and H.~Sch\"onemann, {\em Singular -- A computer algebra system for polynomial computations}, \url{http://www.singular.uni-kl.de}
+
+\bibitem{Dobrowolski1978}
+E.~Dobrowolski,
+\newblock {\em On the maximal modulus of conjugates of an algebraic integer},
+\newblock Bull. Acad. Polon. Sci. S\'er. Sci. Math. Astronom. Phys.,
+  26(4):291--292, 1978.
+
+\bibitem{mpfr}
+L.~Fousse, G.~Hanrot, V.~Lef\`{e}vre, P.~P\'{e}lissier, P.~Zimmermann, {\em MPFR: A multiple-precision
+binary floating-point library with correct rounding}, ACM Transactions on Mathematical Software, vol. 33, (2), Article 13, (2007), pp. 1--15.
 
 \bibitem{mca} 
-J. von zur Gathen and J. Gerhard. {\em Modern Computer Algebra}. Cambridge University Press, 1999.
+J.~von zur Gathen, J.~Gerhard, {\em Modern Computer Algebra}, Cambridge University Press, 1999.
 
-\bibitem{flint}
-W. Hart, F. Johansson and S. Pancratz. {\em FLINT}, open-source C-library. \url{http://www.flintlib.org}
+\bibitem{gmp}
+T.~Granlund and the GMP development team, {\em The GNU Multi Precision Arithmetic 
+Library}, \url{http://gmplib.org/}
 
 \bibitem{antic}
-W. Hart, {\em ANTIC: Algebraic Number Theory in C}, Computeralgebra Rundbrief 56, Fachgruppe Computeralgebra, 2015. \url{http://www.fachgruppe-computeralgebra.de/data/CA-Rundbrief/car56.pdf}
+W.~Hart, {\em ANTIC: Algebraic Number Theory in C}, Computeralgebra Rundbrief 56, Fachgruppe Computeralgebra, 2015, \url{http://www.fachgruppe-computeralgebra.de/data/CA-Rundbrief/car56.pdf}
+
+\bibitem{flint}
+W.~Hart, F.~Johansson, S.~Pancratz, {\em FLINT: Fast Library for Number Theory}, \url{http://www.flintlib.org}
 
 \bibitem{arb}
-F. Johansson. {\em Arb}, open-source C-library. \url{http://arblib.org}
+F.~Johansson, {\em Arb: A C library for ball arithmetic}, \url{http://arblib.org}
 
-\bibitem{ntl}
-V. Shoup {\em NTL}, open-source C++ library. \url{http://www.shoup.net/ntl/}
+\bibitem{heapdiv}
+M.~Monagan, R.~Pearce, {\em Sparse polynomial division using a heap}, Journal of Symbolic Computation, vol. 46, (7), July 2011, pp. 807--822.
+
+\bibitem{heapmul}
+M.~Monagan, R.~Pearce, {\em Parallel sparse polynomial multiplication using heaps}, ISSAC'09, ACM Press (2009), pp. 263--269.
+
+\bibitem{heappow}
+M.~Monagan, R.~Pearce, {\em Sparse polynomial powering using heaps}, Gerdt V.P., Koepf W., Mayr E.W., Vorozhtsov E.V. (eds) Computer Algebra in Scientific Computing. CASC 2012. Lecture Notes in Computer Science, vol 7442. Springer, Berlin, Heidelberg (2012), pp. 236--247.
+
+\bibitem{pari}
+PARI Group, {\em PARI/GP version 2.9.0}, Univ. Bordeaux, 2016, \url{http://pari.math.u-bordeaux.fr/}
+
+\bibitem{giac}
+B.~Parisse, R.~De Graeve, {\em Giac/Xcas version 1.2.2}, 2016, \url{http://www.www-fourier.ujf-grenoble.fr/~parisse/giac.html}
+
+\bibitem{Pohst1997}
+M.~Pohst, H.~Zassenhaus,
+\newblock {\em Algorithmic algebraic number theory},
+\newblock Cambridge University Press, Cambridge, 1997.
 
 \bibitem{sage}
-W. Stein {\em SageMath Mathematics Software}.  \url{http://www.sagemath.org}
+Sage Developers, {\em SageMath, the Sage Mathematics Software System (Version 7.4)}, 2016,  \url{http://www.sagemath.org}
 
-\bibitem{julia} J. Bezanson, A. Edelman, S. Karpinski and V. B. Shah. {\em Julia: A fresh approach to numerical computing}. \url{https://arxiv.org/abs/1411.1607}
+\bibitem{Schoof1982}
+R.~J.~Schoof,
+\newblock {\em Quadratic fields and factorization},
+\newblock In Computational methods in number theory, {P}art {II}, volume
+  155 of Math. Centre Tracts, pages 235--286. Math. Centrum, Amsterdam,
+  1982.
 
-\bibitem{singular} W. Decker, G. M. Greuel, G. Pfister and H. Sch\"onemann. {\em Singular} --- A computer algebra system for polynomial computations. \url{http://www.singular.uni-kl.de}
+\bibitem{ntl}
+V.~Shoup, {\em NTL: A library for doing number theory}, \url{http://www.shoup.net/ntl/}
+
+\bibitem{clow}
+M.~Soltys, {\em Berkowitz's algorithm and clow sequences}, The Electronic Journal of Linear Algebra, International Linear Algebra Society, vol 9, Apr. 2002, pp. 42--54.
 
 %\bibliographystyle{abbrv}
 %\bibliography{issac}
