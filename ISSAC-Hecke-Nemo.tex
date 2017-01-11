@@ -71,13 +71,13 @@ arithmetic.
 
 Nemo is a computer algebra package for the Julia programming language. The eventual aim is
 to provide highly performant commutative algebra, number theory, group theory and discrete
-routines.
+geometry routines.
 
 Nemo consists of two parts: wrappers of specialised C/C++
 libraries (Flint \cite{flint}, Arb \cite{arb}, Antic \cite{antic} and Singular
 \cite{singular}), and
 implementations of generic algorithms and mathematical data
-structures in the Julia language. So far the fully recursive constructions include
+structures in the Julia language. So far the fully recursive, generic constructions include
 univariate polynomial rings, power series rings, residue rings (modulo principal ideals),
 fraction fields, matrices and more recently multivariate polynomials with a sparse
 distributed representation.
@@ -85,10 +85,8 @@ distributed representation.
 \subsection{The Julia programming language}
 
 Julia \cite{julia} is a sophisticated, modern programming language which is designed
-to be both performant and flexible.
-The first public version of Julia appeared in 2012. 
-Julia was written for technical computing with a
-focus on numerics. However, it has found widespread use for many general purpose
+to be both performant and flexible. Julia was written for technical computing with a
+focus on numerics. However, it has found widespread use for general purpose
 applications, largely due to its innovative type system, dispatch mechanism, JIT
 compilation and metaprogramming capabilities.
 The benefits of Julia include:
@@ -102,33 +100,26 @@ The benefits of Julia include:
 \item An efficient native C interface, and more recently an experimental C++ interface.
 \item High performance collection types (dictionaries, iterators, arrays, etc.) and a powerful standard library.
 \end{itemize}
-
-Julia's JIT compilation allows fast performance for
-generic algorithms. (Contrast: Python?... Alternative: C++ templates?)
-
+ 
 One of the most important features from a mathematical point of view is Julia's parametric type system.
-A type is parametric if it depends on another type. For example, in Julia, an array of integers has
-type \texttt{Array\{Int, 1\}} (the 1 refers to the number of dimensions of the array).
+For example, in Julia, an array of integers has type \texttt{Array\{Int, 1\}} (the 1 refers to the dimensions
+of the array).
 
-We make heavy use of the parametric type system in Nemo and Hecke. For example, generic polynomials
+We make heavy use of the parametric type system in Nemo and Hecke. Generic polynomials
 over a ring $R$ have type \texttt{GenPoly\{T\}} where $T$ is the type of elements of the ring $R$.
-Parametric types bear some resemblance to C++ template classes, but note that in Julia the type $T$ can
+Parametric types bear some resemblance to C++ template classes, except that in Julia the type $T$ can
 be constrained to belong to a specified class of types.
 
 \section{Modelling domains in Julia}
 
-Julia provides two levels of types that we make use of: abstract types and concrete types.
-Concrete types are equivalent to the types that appear in languages such as Java, C or C++,
-etc.
+Julia provides two levels of types that we make use of: abstract and concrete types.
+Concrete types are as per the types that appear in languages such as Java, C or C++,
+etc. Abstract types can be thought of as collections of types. They are used when writing generic
+functions that should work for any type in a collection.
 
-Abstract types can be thought of as collections of types. They are used when writing generic
-functions that should work for any type in the given collection.
-
-To write a generic function that accepts any type in a given collection of types, we first
-create an abstract type. Then we create the individual concrete types that belong to that
-abstract type. A generic function can then be constructed with a type parameter, T
-say, similar to a template parameter in C++. The main difference is that we can specify
-which abstract type our type parameter T must belong to.
+To write such a generic function, we first create an abstract type, then we create the individual
+concrete types that belong to that abstract type. The generic function is then specified with a type
+parameter, T say, belonging to the abstract type.
 
 In Julia, the symbol <: is used to specify that a given type belongs to a given abstract type.
 For example the built-in Julia type Int64 for 64 bit machine integers belongs to the Julia
@@ -167,18 +158,17 @@ as a type, then the type would need to contain information about the modulus $n$
 possible in Julia if $n$ is an object, e.g. a multiprecision integer.
 
 Putting such information in types is also not desirable. Julia dispatches on type, and each time
-we call a generic function with different types, a new version of the function is compiled by the
-JIT compiler. This would result in very poor performance if we were writing a multimodular
-algorithm, say. In such an algorithm many rings $\mathbb{Z}/n\mathbb{Z}$ may be needed, and
-recompilation would be triggered for each distinct $n$.
+we call a generic function with values of a new type, the function is recompiled by the
+JIT compiler for that new type. This would result in very poor performance if we were writing a
+multimodular algorithm, say, as recompilation would be triggered for each distinct modulus $n$.
 
 For this reason, the modulus $n$ needs to be attached to the elements of the ring, not to the type
 associated with those elements.
 
 The way we deal with this is to have special (singleton) objects, known as parent objects, that act
 like types, but are in fact ordinary Julia objects. As ordinary objects, parents can contain
-arbitrary information, such as the modulus in $\mathbb{Z}/n\mathbb{Z}$. Each element in the ring
-$\mathbb{Z}/n\mathbb{Z}$ then contains a pointer to the relevant parent object.
+arbitrary information, such as the modulus $n$ in $\mathbb{Z}/n\mathbb{Z}$. Each object representing
+an element of the ring then contains a pointer to this parent object.
 
 This model of mathematical parent objects is taken from SageMath \cite{sage} which in turn followed
 the Magma \cite{magma} computer algebra system.
@@ -194,27 +184,18 @@ a = R(3)
 
 We also make use of the parent object system to encode information such as context objects needed
 by C libraries. As Julia objects can have precisely the same bit representation as native C objects,
-parent objects can be passed directly to C functions. Additional fields in these objects can safely
-appended if it is desirable to retain more information at the Julia level than the C/C++ level. 
+parent objects can be passed directly to C functions. Additional fields in these objects can be safely
+appended if it is desirable to retain more information at the Julia level than the C/C++ level.
 
 \section{Nemo: basic arithmetic in Julia}
 
-Julia was designed with high performance numerical algorithms in mind, and can be used to
-implement numerical algorithms involving floating point numbers at essentially the same
-speed as a low-level C or Fortran algorithm. 
+Julia was designed with high performance numerical algorithms in mind, and provides near
+C or Fortran performance for low-level arithmetic. This allows low-level algorithms to be
+implemented in Julia itself. However, for us, the main advantage of Julia is its ability
+to JIT compile generic algorithms for specific types, in cases where a specific
+implementation does not exist in C. 
 
-It is remarkable that the performance of Julia is so close to C in the optimum case that
-it is possible to implement fast basic arithmetic in Julia itself. We view the main
-advantage of Julia as the ability to implement fast generic algorithms, for which a specific
-implementation does not exist in C. It is also quite convenient to prototype low level
-algorithms in Julia and then port this to low level, hand optimised C with manual memory
-management at a later stage.
-
-Of course, many algebraic applications depend on fast assembly optimised bignum arithmetic
-which Julia is unlikely to be able to compete with. In fact, Julia itself wraps the GMP
-\cite{gmp} and MPFR \cite{mpfr} libraries for its own multiprecision arithmetic.
-
-In this section, we present a few code examples which also double as
+In this section, we present a few code examples which double as
 benchmark problems.
 Additional benchmarks are available
 at \url{http://nemocas.org/benchmarks.html}.
@@ -223,8 +204,8 @@ at \url{http://nemocas.org/benchmarks.html}.
 
 We first consider arithmetic in $\mathbb{Z}[x_1,\ldots,x_k]$.
 The Fateman benchmark consists of computing
-$f \cdot (f+1)$ where $f = (1 + x + y + z + t)^n$,
-usually with $n = 30$. In Nemo, this is expressed by the following code:
+$f \cdot (f+1)$ where $f = (1 + x + y + z + t)^n$. In Nemo, this
+is expressed by the following Julia code:
 
 \begin{verbatim}
 R,x,y,z,t = PolynomialRing(ZZ, ["x","y","z","t"])
@@ -244,17 +225,14 @@ multiplication algorithm for generic coefficients in Julia.
 This implementation is not used by default over $\mathbb{Z}$, but we
 have included it here to give a comparison between
 Julia and C.
-Flint (no asm) is our implementation of essentially
-the same algorithm in C specifically for the coefficient ring $\mathbb{Z}$,
-and Flint (asm) is the same with additional
-assembly optimisations for the coefficient arithmetic.
+Flint (no asm) is essentially
+the same algorithm in C for the coefficient ring $\mathbb{Z}$,
+and Flint (asm) has additional assembly optimisations for the coefficient
+arithmetic.
 
 Finally, Flint (array) and Giac implement an algorithm designed
 for dense polynomials, which consists of accumulating all terms
 into a big array covering all possible exponents.
-(These polynomials are too sparse on a rectangular support
-for Kronecker segmentation to be effective, which otherwise
-would be the preferred way to multiply dense polynomials.)
 
 Table~\ref{tab:pearce} shows timing results on the Pearce
 benchmark, which consists of computing $f \cdot g$ where
@@ -262,9 +240,6 @@ $f = (1 + x + y + 2z^2 + 3t^3 + 5u^5)^n$,
 $g = (1 + u + t + 2z^2 + 3y^3 + 5x^5)^n$.
 This problem is too sparse to use the big array method,
 so only the Johnson algorithm is used.
-As before, we compare the generic Julia version
-with Flint (with and without assembly optimisations).
-Here Giac likewise uses a fully sparse algorithm.
 
 \begin{table}
 \center
@@ -286,25 +261,10 @@ $n$ & SageMath & Magma & Nemo & Flint & Flint & Flint & Giac \\
 \end{small}
 \end{table}
 
-We emphasise again that Nemo defaults to using Flint instead of the generic
-Julia code for $\mathbb{Z}[x_1,\ldots,x_k]$.
-Flint in turn will use the (array) method by default
-given sufficiently dense input (e.g.\ on the Fateman polynomials)
-and the assembly optimised Johnson algorithm otherwise (e.g.\ on the Pearce polynomials).
-
 It is somewhat remarkable that the generic Julia implementation
 of Johnson's algorithm comes
 within a factor two of our C version in Flint (without asm),
 and even runs slightly faster than the C code in Magma.
-Of course, the coefficient ring $\mathbb{Z}$ is exceptionally important
-so even small speedups matter,
-and arithmetic in $\mathbb{Z}$ is cheap
-(and susceptible to precisely the type of low level optimisations
-that are convenient to do in C), which is why we go through
-the trouble to write a dedicated implementation of $\mathbb{Z}[x_1,\ldots,x_k]$ in Flint.
-Over more exotic coefficient domains, the relative
-overhead of the generic Julia code will be even less significant,
-making specialied C implementations less useful.
 
 \begin{table}
 \center
@@ -385,77 +345,55 @@ the efficient implementation of fundamental algorithms.
 
 \subsection{In-place operations}
 
-Low-level C libraries such as GMP/MPIR and Flint allow mutating
-objects in-place. This makes a big difference for performance,
+C libraries such as GMP/MPIR and Flint allow mutating
+objects in-place, which improves performance
 especially when making incremental updates
 to large, nested objects.
 Nemo objects are immutable, but local mutation is
 acceptable while an object is being created,
 and Nemo provides special methods for this purpose.
-For recursively constructed objects, the in-place methods work
-recursively down to the ground level C objects.
-Thus, instead of writing
+
+Instead of writing
 \begin{verbatim}
 s += a * b
 \end{verbatim}
-which creates an object for \texttt{a * b}
-and then replaces \texttt{s} with yet another new object, we may
-create a scratch variable \texttt{t} with the same type as \texttt{a}, \texttt{b} and \texttt{s} and use
+in Nemo, which creates an object for \texttt{a * b}
+and then replaces \texttt{s} with yet another new object, we
+create a reusable scratch variable \texttt{t} with the same type as \texttt{a}, \texttt{b} and \texttt{s} and use
 \begin{verbatim}
 mul!(t, a, b)
 addeq!(s, t)
 \end{verbatim}
 which creates no new objects and avoids making a copy of the data in \texttt{s}
 that is not being modified.
-Naturally, the idea is to limit this less readable construct to
-critical inner loops of operations such as polynomial
-and matrix multiplication.
-%Using this in-place update in the main loop of univariate polynomial
-%multiplication saves a whole factor 6.7 on the Fateman benchmark
-%$f \cdot (f+1)$ where
-%$f = (1 + x + y + z + t)^{30}$, evaluated over the nested univariate
-%ring $\mathbb{Z}[x][y][z][t]$. This is an extreme example, and
-%the typical gain is more modest.
+
+In Julia, in-place operators save not only memory allocation overheads, but also
+garbage collection costs, which may be substantial in the worst case.
 
 \subsection{Polynomial algorithms}
 
-For dense univariate polynomials over a commutative ring we implement classical
-polynomial multiplication. However, when the base ring is itself a polynomial ring,
-we have available an implementation of Kronecker segmentation, to reduce the
-multivariate multiplication to the univariate case.
-
-For use in the subresultant GCD algorithm, we implement generic, polynomial
-pseudoremainder. 
-
-The generic polynomial resultant code computes the resultant using subresultant
+The generic polynomial resultant code in Nemo computes the resultant using subresultant
 pseudoremainder sequences. This code can even be called for polynomials over a
 ring with zero divisors, so long as impossible inverses are caught. The exception
 can be caught using a try/catch block in Julia and a fallback method called, e.g.
 the resultant can be computed using Sylvester matrices. This allows an algorithm
 with quadratic complexity to be called generically, with an algorithm of cubic
-complexity only called as backup in case of failure.
+complexity only called as backup.
 
-For generic power series, Nemo implements both relative and absolute
-representations. In the relative case, the valuation is stored separately so that
-the internal representation begins with the first nonzero coefficient (for nonzero
-power series). This greatly speeds up working with power series that have large
-valuation.
-
-For powering we usually make use of the standard square-and-add approach. However
-when a polynomial with few terms is raised to a high power, we make use of the
-multinomial powering algorithm.
+Nemo implements both relative and absolute power series. 
 
 Nemo also provides a module for generic multivariate polynomials in sparse distributed
-format. We made use of variants of the sparse algorithms described by Monagan and
+format. We make use of variants of the sparse algorithms described by Monagan and
 Pearce for heap-based multiplication \cite{heapmul}, exact division and division with
-remainder \cite{heapdiv} and powering \cite{heappow}.
+remainder \cite{heapdiv} and powering \cite{heappow}. For powering of polynomials with
+few terms, we make use of the multinomial formula.
 
 In the case of pseudodivision for sparse, multivariate polynomials, we extract one
 of the variables and then implement a heap-based, univariate pseudoremainder
 algorithm inspired by an unpublished manuscript of Monagan and Pearce.
 
 We make use of this pseudoremainder implementation to implement the subresultant
-GCD algorithm. To speed this up, we make use of a number of tricks employed by the
+GCD algorithm. To speed the latter up, we make use of a number of tricks employed by the
 Giac/XCAS system \cite{giac}, as taught to us by Bernard Parisse. The most important
 of these is cheap removal of the content that accumulates during the subresultant
 algorithm by analysing the input polynomials to see what form the leading coefficient
@@ -468,9 +406,6 @@ following in increasing order of degree thereafter. But our heuristic heavily fa
 variables in which the polynomial is monic.
 
 \subsection{Matrix algorithms}
-
-Here we describe some of the linear algebra improvements and algorithms for matrices
-over generic commutative rings that we have implemented in Nemo.
 
 For computing the determinant over a generic commutative ring, we implemented a generic
 algorithm making use of Clow sequences \cite{clow} which uses only $O(n^4)$ ring operations
@@ -494,7 +429,7 @@ are well-known.
 
 In addition we have been able to use this strategy in the computation
 of the characteristic polynomial. We have adapted the well-known 1937 method
-of Danilevsky for computing the characteristic polynomial into a fraction-free
+of Danilevsky for computing the characteristic polynomial, into a fraction-free
 version.
 
 Danilevsky's method works by applying similarity transforms to reduce the
@@ -512,8 +447,6 @@ lead to denominators.
 Removing such a factor has to be done in a way that respects the
 similarity transforms. We achieve this by making two passes over the matrix
 to remove the common factor.
-
-FIXME: talk about matrix algorithms over rings.
 
 \subsubsection{Minimal polynomial}
 
@@ -571,13 +504,13 @@ remaindering.
 The only difficulty is knowing when to stop. Heuristically this happens
 when the Chinese remaindering stabilises. Whilst bounds on the number of
 primes required do exist, e.g. based on Ovals of Cassini, the bounds are
-typically extremely pessimistic. We prefer stop as soon as the Chinese
+typically extremely pessimistic. We prefer to stop as soon as the Chinese
 remaindering stabilises, but we need a proof of termination. 
 
 It is unfortunately way too expensive to simply evaluate the minimal
 polynomial $f$ at the matrix $M$ to see if it is zero, since this requires
 taking powers of the matrix $M$, which requires $O(n^4)$ operations over
-$\mathbb{Z}$ in total, in the worst case.
+$\mathbb{Z}$ in total.
 
 In order to give a proof of termination, we instead allow a small amount of
 information to leak from the modulo~$p$ minimal polynomial computations.
@@ -632,28 +565,30 @@ Initially developed during the DFG priority project SPP 1489, Hecke includes the
   verified residue computation of Dedekind zeta functions.
 \end{itemize}
 
-Hecke is written purely in Julia and uses Nemo in two essential ways. On the one hand, it makes heavy use of Flint, Arb and Antic through the Julia interface provided by Nemo.
-On the other hand, it applies the generic constructions and algorithms provided by Nemo to its own types. This allows for example to work efficiently with polynomials or matrices over rings of integers without the necessity to define special types for these objects.
+Hecke is written purely in Julia, though it makes use of Flint, Arb and Antic through the interface provided by Nemo.
+Hecke also applies the generic constructions and algorithms provided by Nemo to its own types. This allows for example to
+work efficiently with polynomials or matrices over rings of integers without the necessity to define special types for these objects.
 
-While for most of the computational challenges we relied on well known techniques as described in \cite{Cohen1993, Pohst1997, Belabas2004} (with a few modifications), we use new strategies for ideal arithmetic as well as for computations with approximations.
+For most computational challenges we rely on well known techniques as described in \cite{Cohen1993, Pohst1997, Belabas2004}
+(with a few modifications). However, we use new strategies for ideal arithmetic and computations with approximations.
 
 \subsection{Fast ideal arithmetic in rings of integers}
 
-A classical result is that in Dedekind domains, like the ring of integers of a number field, any
-ideal can be generated using only two elements, one of which can even be chosen
-at random in the ideal. From the very onset of algorithmic theory this was
-tempting as it reduces the storage requirement to two elements in comparison to the many elements necessary to
-store a $\ZZ$-basis. However, the key problem was always the lack of
-efficient algorithms for working with the generators. We remark that one
+A classical result is that in Dedekind domains, as for the ring of integers of a number field, any
+ideal can be generated using only two elements, one of which can be chosen
+at random in the ideal. This representation is efficient in terms of its storage requirement in comparison to store a
+$\ZZ$-basis. However, the key problem is the lack of
+efficient algorithms for working with two generators. We remark that one
 operation was always efficient using two generators: powering of ideals.
 
-A refinement of this idea, due to Pohst and Zassenhaus \cite[p. 400]{Pohst1997}, is that
-of a \textit{normal} presentation. Here a finite set $S$ of prime numbers
+A refinement of this idea, due to Pohst and Zassenhaus \cite[p. 400]{Pohst1997}, is a 
+\textit{normal} presentation. Here a finite set $S$ of prime numbers
 is fixed, typically containing at least all prime divisors of the norm of the ideal. Then,
 based on this set, the two generators are chosen: The first as an integer
 having only divisors in $S$---but typically with too high multiplicities.
 The second generator then has the correct multiplicity at all prime ideals
 over primes in $S$---but is allowed to have other divisors as well.
+
 For the remainder of this section, let $K/\QQ$ be a number field of
 degree $n$ and $\mathcal O_K$ be its ring of integers.
 
@@ -690,10 +625,10 @@ $v_P(\beta) = \max\{ k \mid \gamma^k\beta\in \mathcal O_K\}$ for all $\beta \in 
 
 It should be noted that (almost all) prime ideal are naturally computed
 in $\{p\}$-normal presentation. The key problem in using the theorem for
-multiplication lies in the fact that both ideals need to be giving by a $S$-normal presentation for
+multiplication lies in the fact that both ideals need to be given by an $S$-normal presentation for
 the same set $S$, which traditionally is achieved by recomputing
 a suitable presentation from scratch, taking random candidates for the
-second generator until it works. Based on the following lemma, have developed a new algorithm that does it at the cost 
+second generator until it works. Based on the following lemma, have developed a new algorithm that manages it at the cost 
 of a few integer operations only.
 
 \begin{lemma}
@@ -711,13 +646,13 @@ $v_P(\beta) = v_P(\alpha)= v_P(A)$ since $v_P(A) <v_P(s)+v_P(a)$ due to $v_P(s)\
 For $P$ coming from $T\setminus S$, we have $v_P(\beta) = 0$ since $v_P(t)\ge 1$ and $v_P(uas) = 0$ as well.
 \end{proof}
 
-Using this lemma on both input ideals, we can get compatible $S$-normal 
-presentations at the cost of two $\gcd$ computations, a few pure integer multiplications and two products of integers with algebraic numbers. The final ideal
-multiplication is then a single integer product and a single product of
+Using this lemma on both input ideals, we can obtain compatible $S$-normal 
+presentations at the cost of two $\gcd$ computations, a few integer multiplications and two products of integers with algebraic numbers. The final ideal
+multiplication is then a single integer product and a product of
 algebraic numbers. Thus the asymptotic cost is that of a single multiplication of two algebraic numbers.
-In contrast, all previous algorithms required some linear algebra step.
+In contrast, all previous algorithms require a linear algebra step.
 
-Finally, we improve on the computation of a $S$-normal presentation.
+Finally, we improve on the computation of an $S$-normal presentation.
 
 \begin{lemma}
 If $0\ne\alpha\in \mathcal O_K$, then $\langle\alpha\rangle\cap \mathbb Z = \langle d\rangle$ where $d>0$ is minimal such that $d/\alpha\in \mathcal O_K$.
@@ -777,25 +712,33 @@ Hecke & 0.02 & 0.04 & 0.06 & 0.08
 
 \subsection{The use of interval arithmetic}
 
-While algebraic number fields and their elements have by definition a very algebraic character, very often one is forced to study these discrete objects in a real or complex setting, e.g. when using embeddings into an algebraically closed field or Dedekind zeta functions.
-The necessity to do this can be twofold. On the one hand it could be an intrinsic property of the problem, and on the other hand it could be the fastest (known) way to solve a particular problem.
-But no matter what the reason is, leaving the realm of discrete objects usually comes at the price of working with approximations and all kinds of related complications.
-We give a few examples of such instances and show, how the ball arithmetic provided by Arb is employed in Hecke to make working with these real and complex objects like a breeze.
+Despite their character, one is often forced to study algebraic number fields in a real or complex setting, e.g. embeddings into an algebraically
+closed field, or computing Dedekind zeta functions.
+This can be due to an intrinsic property of the problem, or it may be the fastest (known)
+ way to solve the problem. Either way, the price is working with approximations.
+We give a few examples of this and show how the ball arithmetic provided by Arb is employed in Hecke for this purpose.
 
 \subsubsection{Computing conjugates}\label{subsub:conj}
 
 Let $K = \QQ[X]/(f)$ be an algebraic number field, where $f \in \QQ[X]$ is an irreducible polynomial of degree $d$.
 We represent the elements of $K$ as polynomials of degree less than $d$.
-Denoting by $\alpha_1,\dotsc,\alpha_d \in \CC$ the roots of $f$ in $\CC$, the distinct embeddings $K \to \CC$ are given by $\sigma_i \colon K \to \CC, \bar X \mapsto \alpha_i$. For an element $\alpha$ of $K$ the complex numbers $\sigma_i(\alpha)$, $1 \leq i \leq d$ are called the conjugates of $\alpha$.
-Since for $\alpha \in K \setminus \QQ$ the conjugates are irrational, it is clear that we cannot do exact computations with these objects but have to rely on approximation techniques.
+Denoting by $\alpha_1,\dotsc,\alpha_d \in \CC$ the roots of $f$ in $\CC$, the distinct embeddings $K \to \CC$ are given by
+$\sigma_i \colon K \to \CC, \bar X \mapsto \alpha_i$. For an element $\alpha$ of $K$ the complex numbers $\sigma_i(\alpha)$, $1 \leq i \leq d$
+are called the conjugates of $\alpha$. Since for $\alpha \in K \setminus \QQ$ the conjugates are irrational, it is clear that we must rely on
+approximations.
+
 In Hecke this is done using ball arithmetic. Let $\alpha = \sum a_j X^j$ be an element of $K$. 
-Assume that we want to find $\hat \sigma_i(\alpha) \in \RR$ with $\lvert \sigma_i(\alpha) - \hat \sigma_i(\alpha) \rvert \leq 2^{-p}$ for some precision $p \in \ZZ_{\geq 1}$.
-Using Arb's polynomial root finding functionality and some initial precision $p' \geq p$ we can find balls $B_{p'}^{(i)} \subseteq \RR$ such that $\alpha_i \in B_{p'}^{(i)}$ and $\operatorname{diam}(B_{p'}^{(i)}) \leq 2^{-p'}$.
+Assume that we want to find $\hat \sigma_i(\alpha) \in \RR$ with $\lvert \sigma_i(\alpha) - \hat \sigma_i(\alpha) \rvert \leq 2^{-p}$
+for some precision $p \in \ZZ_{\geq 1}$.
+
+Using Arb's polynomial root finding functionality and some initial precision $p' \geq p$ we find balls $B_{p'}^{(i)} \subseteq \RR$ such
+that $\alpha_i \in B_{p'}^{(i)}$ and $\operatorname{diam}(B_{p'}^{(i)}) \leq 2^{-p'}$.
 Ball arithmetic then yields balls $B_\alpha^{(i)} \subseteq \RR$ with
 \[ \sigma_i(\alpha) = \sum_{1 \leq j \leq d} a_j \alpha_i^j \in \sum_{1 \leq j \leq d} a_j (B_{p'}^{(i)})^j\subseteq B_\alpha^{(i)}. \]
-Finally we check whether $\operatorname{diam}(B_\alpha^{(i)}) \leq 2^{-p}$. If this is not the case, we increase the working precision $p'$ and repeat the steps.
+
+Finally we check whether $\operatorname{diam}(B_\alpha^{(i)}) \leq 2^{-p}$. If not, we increase the working precision $p'$ and repeat.
 When finished, the midpoints of the balls $B_\alpha^{(i)}$ are approximations $\hat \sigma_i(\alpha)$ with the desired property.
-The following code shows how this can be implemented in Hecke.
+The following Hecke code illustrates this.
 
 \begin{verbatim}
 QQx, x = PolynomialRing(QQ, "x")
@@ -817,23 +760,30 @@ while true
 end
 \end{verbatim}
 
-Performing the same task using only floating point arithmetic requires a priori error analysis to obtain the precision necessary for a correct result.
-Since through the use of ball arithmetic the problem of keeping track of errors is delegated to Arb, this allows for quick development of algorithms working with conjugates, which at the same time yield guaranteed results.
+To perform the same task using floating point arithmetic would require a priori error analysis.
+Arb's ball arithmetic allows the error analysis to be carried along with the computation. This allows for fast development,
+which at the same time maintaining guaranteed results.
 
 \subsubsection{Torsion units}
 
-For an algebraic number field $K$ of degree $d$, the set $\{ \alpha \in K^\times \mid \exists n \in \ZZ_{\geq 1} \colon \alpha^n = 1 \}$ of torsion units is a finite cyclic subgroup of $K^\times$, which plays an important role
+For an algebraic number field $K$ of degree $d$, the set $\{ \alpha \in K^\times \mid \exists n \in \ZZ_{\geq 1} \colon \alpha^n = 1 \}$ of
+torsion units is a finite cyclic subgroup of $K^\times$, which plays an important role
 when investigating the unit group of the ring of integers of $K$.
-In particular for a given $\alpha \in K^\times$ it is important to quickly decide whether it is a torsion unit.
+
+Given $\alpha \in K^\times$ it is important to quickly decide whether it is a torsion unit.
 A list of possible integers $n$ with $\alpha^n = 1$ can be obtained as follows:
 If $\alpha$ is a torsion unit, then $\alpha$ is a primitive $k$-th root of unity for some $k$.
 In particular $K$ contains the $k$-th cyclotomic field and $\varphi(k)$ divides $n$.
-Since there are only finitely many $k$ with the property that $\varphi(k)$ divides $n$, for every such $k$ we can test $\alpha^k = 1$ and in this way decide whether $\alpha$ is a torsion unit.
+Since there are only finitely many $k$ with the property that $\varphi(k)$ divides $n$,
+for every such $k$ we can test $\alpha^k = 1$ and in this way decide whether $\alpha$ is a torsion unit.
 While this works well for small values of $n$, for large $n$ this quickly becomes inefficient.
 
-A second approach rests on the fact that torsion units are characterized by their conjugates: An element $\alpha$ is a torsion unit if and only if $\lvert \sigma_i(\alpha) \rvert = 1$ for $1 \leq i \leq d$.
-Although we can compute approximations of conjugates with arbitrary precision, since conjugates are in general irrational, it is not possible test whether they (or their absolute value) are equal to $1$.
-Nevertheless we can bring conjugates into play using the following result of Dobrowolski~\cite{Dobrowolski1978}, which bounds the modulus of conjugates of non-torsion units.
+A second approach rests on the fact that torsion units are characterized by their conjugates: An element
+$\alpha$ is a torsion unit if and only if $\lvert \sigma_i(\alpha) \rvert = 1$ for $1 \leq i \leq d$.
+Although we can compute approximations of conjugates with arbitrary precision, since conjugates are in general
+irrational, it is not possible test whether they (or their absolute value) are exactly equal to $1$.
+
+We make use of the following result of Dobrowolski~\cite{Dobrowolski1978}, which bounds the modulus of conjugates of non-torsion units.
 
 \begin{lemma}
 If $\alpha$ is not a torsion unit, then there exists some $1 \leq i \leq k$ such that
@@ -852,8 +802,9 @@ We can rephrase this using approximation as follows.
   \end{enumerate}
 \end{lemma}
 
-It is now straight forward to turn this into an algorithm for testing whether $\alpha$ is torsion: Approximate the conjugates of $\alpha$ using balls as in~\ref{subsub:conj} for some starting precision $p \geq 1$ and check if one of the statements of Lemma~\ref{lem:tor} hold.
-If not, then we increase the precision and start all over.
+It is straightforward to turn this into an algorithm to test whether $\alpha$ is torsion: Approximate the conjugates of $\alpha$ using balls
+as in~\ref{subsub:conj} for some starting precision $p \geq 1$ and check if one of the statements of Lemma~\ref{lem:tor} hold.
+If not, increase the precision and start over.
 Since the radii of the balls tend to $0$, by Lemma~\ref{lem:tor} the algorithm will eventually terminate.
 
 \subsubsection{Residues of Dedekind zeta functions}
@@ -861,28 +812,35 @@ Since the radii of the balls tend to $0$, by Lemma~\ref{lem:tor} the algorithm w
 For a number field $K$ and $s \in \CC$, $\operatorname{Re}(s) > 1$, the Dedekind zeta function of $K$ is defined as
 \[ \zeta_K(s) = \sum_{\{0\} \neq I \subseteq \mathcal O_K} \frac 1 {N(I)^s}, \]
 where the sum is over all nonzero ideals of the ring of integers $\mathcal O_K$ of $K$.
-This function has an analytic continuation to the whole complex plane with a simple pol at $1$. The celebrated analytic class number formula (see~\cite{Cohen1993}) states that the residue at that pole encodes important arithmetic data of $K$:
+This function has an analytic continuation to the whole complex plane with a simple pol at $1$. The celebrated analytic class number formula
+(see~\cite{Cohen1993}) states that the residue at that pole encodes important arithmetic data of $K$:
 \[ \operatorname{res}(\zeta_K, 1) =\lim_{s \to 1}(s - 1)\zeta_K(s) = h_K \cdot \mathrm{reg}_K \cdot c_K, \]
-where $h_K$ is the class number, $\mathrm{reg}_K$ the regulator and $c_K$ another (easy to determine) constant depending on $K$.
-While this is an intriguing result from a theoretical point of view, it is also an important tool during class group computations.
-By approximating the residue the class number formula allows one to certify that tentative class and unit groups are in fact correct (see \cite{Biasse2014}).
+where $h_K$ is the class number, $\mathrm{reg}_K$ is the regulator and $c_K$ is another (easy to determine) constant depending on $K$.
 
-We describe the approximation under GRH using an algorithm of Belabas and Friedmann~\cite{Belabas2015}, but it is also possible with results from Schoof~\cite{Schoof1982} or Bach~\cite{Bach1995}.
+As well as being an intriguing theoretical result, it is also an important tool during class group computations.
+By approximating the residue, the class number formula allows one to certify that tentative class and unit groups are in fact
+correct (see \cite{Biasse2014}).
+
+We describe the approximation under GRH using an algorithm of Belabas and Friedmann~\cite{Belabas2015}, but it is also possible with
+results from Schoof~\cite{Schoof1982} or Bach~\cite{Bach1995}.
 Since the aim is to illustrate the use of ball arithmetic, we will not give detailed formulas for the approximation or the error.
 
 \begin{theorem}[Belabas-Friedmann]
-There exists functions $g_K$, $\varepsilon_K \colon \RR \to \RR$, with
+There exist functions $g_K$, $\varepsilon_K \colon \RR \to \RR$, with
 \[ \lvert \log(\operatorname{res}(\zeta_K, 1)) - g_K(x) \rvert \leq \varepsilon_K(x) \]
-for all $x \geq 69$. The evaluation of $g_K(x)$ involves only prime powers $p^m \leq x$ and prime ideal powers $\mathfrak p^m$ with $N(\mathfrak p^m) \leq x$.
-Moreover the function $\varepsilon_K$ is strictly decreasing and depends only on the degree and the discriminant of $K$.
+for all $x \geq 69$. The evaluation of $g_K(x)$ involves only prime powers $p^m \leq x$ and prime ideal powers $\mathfrak p^m$ with
+$N(\mathfrak p^m) \leq x$. Moreover the function $\varepsilon_K$ is strictly decreasing and depends only on the degree and the
+discriminant of $K$.
 \end{theorem}
 
 Assume now that $\varepsilon > 0$ and we want to find $z \in \RR$ such that
 \[ \lvert \log(\operatorname{res}(\zeta_K, 1)) - z \rvert \leq \varepsilon.\]
-We first compute an $x_0$ such that $\varepsilon_K(x_0) < \varepsilon/2$. Note that since $\varepsilon_K$ is strictly decreasing, this can be done using ordinary floating point arithmetic with appropriate rounding modes.
-Once we have this value we compute a real ball $B$ with $g_K(x_0) \in B$ and $\operatorname{diam}(B) \leq \varepsilon/2$ (as usual we start with some initial precision and increase it until the the radius of the ball is small enough).
-By the choice of $x_0$, the midpoint of $B$ will be an appropriate approximation to the logarithm of the residue with error at most $\varepsilon$.
-Again this yields a guaranteed result, while at the same time we have avoided any kind of error analysis (such an error analysis will be very tedious due to the form of $g_K$).
+We first compute an $x_0$ such that $\varepsilon_K(x_0) < \varepsilon/2$. Note that since $\varepsilon_K$ is strictly decreasing,
+this can be done using ordinary floating point arithmetic with appropriate rounding modes.
+Once we have this value we compute a real ball $B$ with $g_K(x_0) \in B$ and $\operatorname{diam}(B) \leq \varepsilon/2$ (as usual
+we progressively increase precision until the the radius of the ball is small enough).
+By the choice of $x_0$, the midpoint of $B$ is an approximation to the logarithm of the residue with error at most $\varepsilon$.
+Again this yields a guaranteed result, but avoids the tedious error analysis due to the form of $g_K$.
 
 \section{C/C++ wrappers in Nemo}
 
@@ -895,22 +853,18 @@ as well as matrices, polynomials and power series over most
 of these ground rings.
 Nemo implements elements of these rings as thin wrappers of the
 Flint C types.
-Some Flint types such as finite fields
-require context objects, which we
-store in the corresponding parent objects.
 
 Nemo uses Flint types where available instead of generic code.
 For instance, \texttt{PolynomialRing(ZZ, "x")} automatically uses
 the Julia wrapper of Flint's \texttt{fmpz\_poly} instead of generic
 polynomials over Nemo's \texttt{ZZ} which wraps Flint's \texttt{fmpz}
 integer type.
-The benefit is that
-Flint implements many low level tricks and algorithmic optimisations
-specific to each ring. For example, Flint's multiplication in $\mathbb{Z}[x]$
-uses a basecase method with optimisations for small coefficients,
-Karatsuba multiplication, Kronecker segmentation and
-a Sch\"{o}nhage-Strassen FFT, with accurate cutoffs
-between algorithms depending on the degrees and coefficient sizes.
+
+Flint's multiplication in $\mathbb{Z}[x]$
+uses a best-of-breed algorithm which selects classical multiplication,
+Karatsuba multiplication, Kronecker segmentation or a 
+Sch\"{o}nhage-Strassen FFT, with accurate cutoffs
+between algorithms, depending on the degrees and coefficient sizes.
 
 Additional Flint algorithms wrapped by Nemo include
 primality testing, polynomial factorisation, LLL, and Smith and Hermite
@@ -970,50 +924,45 @@ would be an interesting future project.
 
 \subsection{Antic: algebraic number fields}
 
-Antic (Algebraic Number Theory in C) is a C library, depending on the Flint library, for
-doing computations in algebraic number fields. At this stage it contains algebraic number
-field element arithmetic only.
+Antic (Algebraic Number Theory in C) is a C library, depending on Flint, for
+doing efficient computations in algebraic number fields. 
 
-Nemo makes use of Antic for speeding up element arithmetic. We briefly describe some
-of the techniques Antic uses for fast arithmetic, and how Nemo interfaces with Antic, but
+Nemo makes use of Antic for speeding up number field element arithmetic. We briefly describe some
+of the techniques Antic uses for fast arithmetic, but
 refer the reader to the article \cite{antic} for full details.
 
-Antic represents number field elements as Flint polynomials and derives much of its speed
-from the highly optimised polynomial arithmetic in Flint. However, there are a few
-additional tricks employed for number fields.
+Antic represents number field elements as Flint polynomials thereby benefiting
+from the highly optimised polynomial arithmetic in Flint. However, a few
+additional tricks employed.
 
-Firstly, Antic makes use of number field context objects, which are set up when a number
-field is created. The results of a number of precomputations are stored in the context
+Firstly, Antic makes a number of precomputations which are stored in a context
 object to speed up subsequent computations with number field elements. Number field parent
 objects at the Nemo level consist precisely of these context objects.
 
-The first precomputation is a precomputed inverse of the leading coefficient of the defining
+The first is a precomputed inverse of the leading coefficient of the defining
 polynomial of the number field. This helps speed up reduction modulo the defining polynomial.
 
-The second piece of precomputed data is an array of precomputed powers $x^i$ modulo the
+The second is an array of precomputed powers $x^i$ modulo the
 defining polynomial $f(x)$. This allows fast reduction of polynomials whose degree exceeds
-that of the defining polynomial, e.g. in multiplication of number field elements $g$ anf $h$
-where one wants to compute $g(x)h(x) \pmod{f(x)}$.
+that of the defining polynomial, e.g. in multiplication of number field elements $g$ and $h$
+where one wants wants to compute $g(x)h(x) \pmod{f(x)}$.
 
 The third precomputation is of traces $S_k = \sum_{i=1}^n \theta_i^k$ where the $\theta_i$
 are the roots of the defining polynomial $f(x)$. These traces are precomputed using
-recursive formulae as described for example in \cite{Cohen1993}. These precomputed traces are
-used to speed up the computation of traces of elements of the algebraic number field.
+recursive formulae as described in \cite{Cohen1993}. They are
+used to speed up the computation of traces of elements of the number field.
 
 Norms of elements of number fields are computed using resultants, for which we make use of
-the fast polynomial resultant code in Flint, rather than an expensive Sylvester matrix
-computation.
-
-Inverses of elements are likewise computed using very fast polynomial extended GCD code in
-Flint.
+the fast polynomial resultant code in Flint. Inverses of elements are computed using the fast polynomial
+extended GCD implementation in Flint.
 
 Antic also offers the ability to do multiplication of number field elements without
 reduction. This is useful for speeding up the dot products that occur in matrix
 multiplication, for example. Instead of reducing after every multiplication, the unreduced
 products are first accumulated and their sum can be reduced at the end of the dot product.
 
-To facilitate this delayed reduction, all Antic number field elements are allocated with
-sufficient space to store a single product, rather than the reduction of such a product.
+To facilitate delayed reduction, all Antic number field elements are allocated with
+sufficient space to store a full polynomial product, rather than the reduction of such a product.
 
 \begin{thebibliography}{99}
 
