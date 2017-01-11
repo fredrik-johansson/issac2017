@@ -552,6 +552,128 @@ A generic version of this algorithm is implemented in Julia code in Nemo, and
 an efficient version over $\mathbb{Z}$ using the Chinese remaindering trick
 is implemented in Flint and made available in Nemo.
 
+\section{C/C++ wrappers in Nemo}
+
+\subsection{Flint: arithmetic and number theory}
+
+Flint provides arithmetic over
+$\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{Z}/n\mathbb{Z}$,
+$\operatorname{GF}(q), \mathbb{Q}_p$
+as well as matrices, polynomials and power series over most
+of these ground rings.
+Nemo implements elements of these rings as thin wrappers of the
+Flint C types.
+
+Nemo uses Flint types where available instead of generic code.
+For instance, \texttt{PolynomialRing(ZZ, "x")} automatically uses
+the Julia wrapper of Flint's \texttt{fmpz\_poly} instead of generic
+polynomials over Nemo's \texttt{ZZ} which wraps Flint's \texttt{fmpz}
+integer type.
+
+Flint's multiplication in $\mathbb{Z}[x]$
+uses a best-of-breed algorithm which selects classical multiplication,
+Karatsuba multiplication, Kronecker segmentation or a 
+Sch\"{o}nhage-Strassen FFT, with accurate cutoffs
+between algorithms, depending on the degrees and coefficient sizes.
+
+Additional Flint algorithms wrapped by Nemo include
+primality testing, polynomial factorisation, LLL, and Smith and Hermite
+normal forms of integer matrices.
+
+\subsection{Arb: arbitrary precision ball arithmetic}
+
+Computing over $\mathbb{R}$ and $\mathbb{C}$ requires
+using some approximate model for these fields.
+The most common model is floating-point arithmetic.
+However, for many computer algebra algorithms, the error analysis
+necessary to guarantee correct results with floating-point arithmetic
+becomes impractical to do by hand.
+Interval arithmetic solves this problem by effectively making
+error analysis automatic.
+
+Nemo includes wrapper code for the C library Arb, which implements real numbers as
+arbitrary-precision midpoint-radius intervals (balls) $[m \pm r]$
+and complex numbers as rectangular boxes $[a \pm r_1]$ + $[b \pm r_2] i$.
+The precision is stored in the parent object.
+For example, \texttt{R = ArbField(53)}
+creates a field of Arb real numbers with 53-bit precision.
+Arb also supplies types for polynomials, power series and matrices
+over $\mathbb{R}$ and $\mathbb{C}$, as well as transcendental functions.
+
+With arbitrary-precision interval arithmetic, a form of
+coarse-grained lazy evaluation is possible: the user can
+try a computation with some tentative precision $p$ and restart
+with precision $2p$ if that fails. The precision can be set
+optimally when a good estimate for the minimal
+required~$p$ is available; that is, the intervals
+can be used as if they were plain floating-point numbers, and the automatic
+error bounds simply provide a certificate.
+
+The midpoint-radius interval form is particularly efficient
+at high precision,
+since low precision is sufficient for the radii, which means that
+speed and memory efficiency is close to the optimum possible
+with plain arbitrary-precision floating-point arithmetic.
+Like Flint, Arb systematically uses asymptotically fast algorithms
+for operations such as polynomial multiplication, with tuning
+for different problem sizes.
+
+While alternative implementations of $\mathbb{R}$ and $\mathbb{C}$
+may be added to Nemo in the future, we envision Arb as a reasonable default,
+and we have used it with good success (see Hecke).
+
+In some applications, it would be more convenient to use a lazy
+bit stream abstraction in which the precision for individual
+numbers is increased automatically.
+This typically requires storing a symbolic DAG representation,
+which potentially becomes very costly.
+Such an approach has previously been explored in MMXlib~\cite{mmxlibeffective} and iRRAM~\cite{irram}
+among others.
+Implementing lazy numbers on top of Arb in Julia
+would be an interesting future project.
+
+\subsection{Antic: algebraic number fields}
+
+Antic (Algebraic Number Theory in C) is a C library, depending on Flint, for
+doing efficient computations in algebraic number fields. 
+
+Nemo makes use of Antic for speeding up number field element arithmetic. We briefly describe some
+of the techniques Antic uses for fast arithmetic, but
+refer the reader to the article \cite{antic} for full details.
+
+Antic represents number field elements as Flint polynomials thereby benefiting
+from the highly optimised polynomial arithmetic in Flint. However, a few
+additional tricks employed.
+
+Firstly, Antic makes a number of precomputations which are stored in a context
+object to speed up subsequent computations with number field elements. Number field parent
+objects at the Nemo level consist precisely of these context objects.
+
+The first is a precomputed inverse of the leading coefficient of the defining
+polynomial of the number field. This helps speed up reduction modulo the defining polynomial.
+
+The second is an array of precomputed powers $x^i$ modulo the
+defining polynomial $f(x)$. This allows fast reduction of polynomials whose degree exceeds
+that of the defining polynomial, e.g. in multiplication of number field elements $g$ and $h$
+where one wants wants to compute $g(x)h(x) \pmod{f(x)}$.
+
+The third precomputation is of traces $S_k = \sum_{i=1}^n \theta_i^k$ where the $\theta_i$
+are the roots of the defining polynomial $f(x)$. These traces are precomputed using
+recursive formulae as described in \cite{Cohen1993}. They are
+used to speed up the computation of traces of elements of the number field.
+
+Norms of elements of number fields are computed using resultants, for which we make use of
+the fast polynomial resultant code in Flint. Inverses of elements are computed using the fast polynomial
+extended GCD implementation in Flint.
+
+Antic also offers the ability to do multiplication of number field elements without
+reduction. This is useful for speeding up the dot products that occur in matrix
+multiplication, for example. Instead of reducing after every multiplication, the unreduced
+products are first accumulated and their sum can be reduced at the end of the dot product.
+
+To facilitate delayed reduction, all Antic number field elements are allocated with
+sufficient space to store a full polynomial product, rather than the reduction of such a product.
+
 \section{Hecke: algebraic number theory in Julia}
 
 Hecke is a tool for algebraic number theory, written in the Julia programming language.
@@ -843,128 +965,6 @@ Once we have this value we compute a real ball $B$ with $g_K(x_0) \in B$ and $\o
 we progressively increase precision until the the radius of the ball is small enough).
 By the choice of $x_0$, the midpoint of $B$ is an approximation to the logarithm of the residue with error at most $\varepsilon$.
 Again this yields a guaranteed result, but avoids the tedious error analysis due to the form of $g_K$.
-
-\section{C/C++ wrappers in Nemo}
-
-\subsection{Flint: arithmetic and number theory}
-
-Flint provides arithmetic over
-$\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{Z}/n\mathbb{Z}$,
-$\operatorname{GF}(q), \mathbb{Q}_p$
-as well as matrices, polynomials and power series over most
-of these ground rings.
-Nemo implements elements of these rings as thin wrappers of the
-Flint C types.
-
-Nemo uses Flint types where available instead of generic code.
-For instance, \texttt{PolynomialRing(ZZ, "x")} automatically uses
-the Julia wrapper of Flint's \texttt{fmpz\_poly} instead of generic
-polynomials over Nemo's \texttt{ZZ} which wraps Flint's \texttt{fmpz}
-integer type.
-
-Flint's multiplication in $\mathbb{Z}[x]$
-uses a best-of-breed algorithm which selects classical multiplication,
-Karatsuba multiplication, Kronecker segmentation or a 
-Sch\"{o}nhage-Strassen FFT, with accurate cutoffs
-between algorithms, depending on the degrees and coefficient sizes.
-
-Additional Flint algorithms wrapped by Nemo include
-primality testing, polynomial factorisation, LLL, and Smith and Hermite
-normal forms of integer matrices.
-
-\subsection{Arb: arbitrary precision ball arithmetic}
-
-Computing over $\mathbb{R}$ and $\mathbb{C}$ requires
-using some approximate model for these fields.
-The most common model is floating-point arithmetic.
-However, for many computer algebra algorithms, the error analysis
-necessary to guarantee correct results with floating-point arithmetic
-becomes impractical to do by hand.
-Interval arithmetic solves this problem by effectively making
-error analysis automatic.
-
-Nemo includes wrapper code for the C library Arb, which implements real numbers as
-arbitrary-precision midpoint-radius intervals (balls) $[m \pm r]$
-and complex numbers as rectangular boxes $[a \pm r_1]$ + $[b \pm r_2] i$.
-The precision is stored in the parent object.
-For example, \texttt{R = ArbField(53)}
-creates a field of Arb real numbers with 53-bit precision.
-Arb also supplies types for polynomials, power series and matrices
-over $\mathbb{R}$ and $\mathbb{C}$, as well as transcendental functions.
-
-With arbitrary-precision interval arithmetic, a form of
-coarse-grained lazy evaluation is possible: the user can
-try a computation with some tentative precision $p$ and restart
-with precision $2p$ if that fails. The precision can be set
-optimally when a good estimate for the minimal
-required~$p$ is available; that is, the intervals
-can be used as if they were plain floating-point numbers, and the automatic
-error bounds simply provide a certificate.
-
-The midpoint-radius interval form is particularly efficient
-at high precision,
-since low precision is sufficient for the radii, which means that
-speed and memory efficiency is close to the optimum possible
-with plain arbitrary-precision floating-point arithmetic.
-Like Flint, Arb systematically uses asymptotically fast algorithms
-for operations such as polynomial multiplication, with tuning
-for different problem sizes.
-
-While alternative implementations of $\mathbb{R}$ and $\mathbb{C}$
-may be added to Nemo in the future, we envision Arb as a reasonable default,
-and we have used it with good success (see Hecke).
-
-In some applications, it would be more convenient to use a lazy
-bit stream abstraction in which the precision for individual
-numbers is increased automatically.
-This typically requires storing a symbolic DAG representation,
-which potentially becomes very costly.
-Such an approach has previously been explored in MMXlib~\cite{mmxlibeffective} and iRRAM~\cite{irram}
-among others.
-Implementing lazy numbers on top of Arb in Julia
-would be an interesting future project.
-
-\subsection{Antic: algebraic number fields}
-
-Antic (Algebraic Number Theory in C) is a C library, depending on Flint, for
-doing efficient computations in algebraic number fields. 
-
-Nemo makes use of Antic for speeding up number field element arithmetic. We briefly describe some
-of the techniques Antic uses for fast arithmetic, but
-refer the reader to the article \cite{antic} for full details.
-
-Antic represents number field elements as Flint polynomials thereby benefiting
-from the highly optimised polynomial arithmetic in Flint. However, a few
-additional tricks employed.
-
-Firstly, Antic makes a number of precomputations which are stored in a context
-object to speed up subsequent computations with number field elements. Number field parent
-objects at the Nemo level consist precisely of these context objects.
-
-The first is a precomputed inverse of the leading coefficient of the defining
-polynomial of the number field. This helps speed up reduction modulo the defining polynomial.
-
-The second is an array of precomputed powers $x^i$ modulo the
-defining polynomial $f(x)$. This allows fast reduction of polynomials whose degree exceeds
-that of the defining polynomial, e.g. in multiplication of number field elements $g$ and $h$
-where one wants wants to compute $g(x)h(x) \pmod{f(x)}$.
-
-The third precomputation is of traces $S_k = \sum_{i=1}^n \theta_i^k$ where the $\theta_i$
-are the roots of the defining polynomial $f(x)$. These traces are precomputed using
-recursive formulae as described in \cite{Cohen1993}. They are
-used to speed up the computation of traces of elements of the number field.
-
-Norms of elements of number fields are computed using resultants, for which we make use of
-the fast polynomial resultant code in Flint. Inverses of elements are computed using the fast polynomial
-extended GCD implementation in Flint.
-
-Antic also offers the ability to do multiplication of number field elements without
-reduction. This is useful for speeding up the dot products that occur in matrix
-multiplication, for example. Instead of reducing after every multiplication, the unreduced
-products are first accumulated and their sum can be reduced at the end of the dot product.
-
-To facilitate delayed reduction, all Antic number field elements are allocated with
-sufficient space to store a full polynomial product, rather than the reduction of such a product.
 
 \begin{thebibliography}{99}
 
