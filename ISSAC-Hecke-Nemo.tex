@@ -385,15 +385,15 @@ the efficient implementation of fundamental algorithms.
 
 \subsection{In-place operations}
 
-A consistent way to improve performance is to modify
-elements in-place, especially when making incremental updates
-to large, highly nested objects.
-In-place operations are used pervasively in Flint (and one level below, in GMP/MPIR).
-Nemo objects are ostensibly immutable, but local mutation is
+Low-level C libraries such as GMP/MPIR and Flint allow mutating
+objects in-place. This makes a big difference for performance,
+especially when making incremental updates
+to large, nested objects.
+Nemo objects are immutable, but local mutation is
 acceptable while an object is being created,
 and Nemo provides special methods for this purpose.
 For recursively constructed objects, the in-place methods work
-recursively down to and including the ground level C objects.
+recursively down to the ground level C objects.
 Thus, instead of writing
 \begin{verbatim}
 s += a * b
