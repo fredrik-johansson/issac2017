@@ -60,9 +60,13 @@ We introduce two new packages, Nemo and Hecke, written in the Julia programming 
 for computer algebra and number theory.
 We demonstrate that high performance generic
 algorithms can be implemented in Julia, without the need to resort to a low-level C
-implementation. We also describe the various Julia wrappers of existing C/C++ libraries
-such as Flint, Arb, Antic and Singular. We give examples of how to use Hecke and Nemo and discuss
-some of the algorithms that we have implemented to provide high performance basic
+implementation.
+For specialised algorithms, we exploit Julia's efficient
+native C interface to wrap
+existing C/C++ libraries such
+as Flint, Arb, Antic and Singular.
+We give examples of how to use Hecke and Nemo and discuss
+some algorithms that we have implemented to provide high performance basic
 arithmetic.
 \end{abstract}
 
@@ -105,26 +109,21 @@ algebraic number theory.
 \section{Computer algebra in Julia}
 \label{sect:domains}
 
-Julia \cite{julia} is a sophisticated, modern programming language which is designed
+Julia \cite{julia} is a modern programming language designed
 to be both performant and flexible.
-%Julia was written for technical computing with a
-%focus on numerics. However, it has found widespread use for general purpose
-%applications.
-Notable features include an innovative type system
-(with support for parametric types and multiple dispatch),
+Notable features include an innovative type system,
+multiple dispatch,
 just-in-time (JIT) compilation
 supported by dynamic type inference,
+automatic memory management (garbage collection),
 and powerful metaprogramming capabilities.
-In addition, Julia has an efficient native C interface, and more recently an experimental C++ interface.
+Julia also has an efficient native C interface, and more recently a C++ interface.
 
-Julia has a familiar imperative syntax (like Python and Matlab),
-and supports operator overloading.
-It includes high performance collection types (dictionaries, iterators, arrays, etc.),
-has automatic memory management (garbage collection) and comes with a powerful
-standard library.
-In addition, Julia provides an interactive console and support for Jupyter notebooks.
-These features enable rapid development and make Julia
-convenient as a user language.
+Julia uses a familiar imperative syntax similar to Python or Matlab,
+with support for operator overloading.
+It provides high performance builtin collection types (dictionaries, iterators, arrays, etc.)
+and comes with a powerful standard library.
+Julia also provides an interactive console and can be used with Jupyter notebooks.
 
 Julia was designed with high performance numerical algorithms in mind, and provides near
 C or Fortran performance for low-level arithmetic. This allows low-level algorithms to be
@@ -176,7 +175,7 @@ Figure~\ref{fig:types} shows the abstract type hierarchy in Nemo.
 
 \begin{figure}[h]
 \centering
-\includegraphics[scale=0.21]{types.png}
+\includegraphics[scale=0.19]{types.png}
 \caption{The Nemo abstract type hierarchy}
 \label{fig:types}
 \end{figure}
@@ -988,7 +987,7 @@ $N(\mathfrak p^m) \leq x$. Moreover the function $\varepsilon_K$ is strictly dec
 discriminant of $K$.
 \end{theorem}
 
-Assume now that $\varepsilon > 0$ and we want to find $z \in \RR$ such that
+Assume that $\varepsilon > 0$ and we want to find $z \in \RR$ such that
 \[ \lvert \log(\operatorname{res}(\zeta_K, 1)) - z \rvert \leq \varepsilon.\]
 We first compute an $x_0$ such that $\varepsilon_K(x_0) < \varepsilon/2$. Note that since $\varepsilon_K$ is strictly decreasing,
 this can be done using ordinary floating point arithmetic with appropriate rounding modes.
