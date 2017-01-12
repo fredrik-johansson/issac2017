@@ -73,7 +73,7 @@ arithmetic.
 
 \section{Introduction}
 
-Nemo (\url{http://nemocas.org}) is a computer algebra package for the Julia programming language.
+Nemo\footnote{\url{http://nemocas.org}} is a computer algebra package for the Julia programming language.
 The eventual aim is
 to provide highly performant commutative algebra, number theory, group theory and discrete
 geometry routines.
@@ -87,6 +87,8 @@ univariate and multivariate
 polynomial rings, power series rings, residue rings (modulo principal ideals),
 fraction fields, and matrices.
 
+Hecke is a Julia package that builds on Nemo to cover algebraic number theory.
+
 We demonstrate
 that Julia is effective for implementing high performance computer
 algebra algorithms. Our implementations also
@@ -94,15 +96,15 @@ include a number of
 improvements over the state of the art
 in existing computer algebra systems.
 
-Section~\ref{sect:domains} of this paper discusses the choice of Julia
-and our approach to implementing mathematical structures in Julia.
-We also demonstrate basic use of Nemo.
-Sections \ref{sect:generic}
-discusses in more detail the algorithms and wrappers
-implemented in Nemo.
-Finally, section~\ref{sect:hecke} discusses Hecke, a Julia
-package that builds on Nemo to cover
-algebraic number theory.
+%Section~\ref{sect:domains} of this paper discusses the choice of Julia
+%and our approach to implementing mathematical structures in Julia.
+%We also demonstrate basic use of Nemo.
+%Sections \ref{sect:generic}
+%discusses in more detail the algorithms and wrappers
+%implemented in Nemo.
+%Finally, section~\ref{sect:hecke} discusses Hecke, a Julia
+%package that builds on Nemo to cover
+%algebraic number theory.
 
 \section{Computer algebra in Julia}
 \label{sect:domains}
@@ -250,13 +252,13 @@ In Julia, in-place operators save not only memory allocation and copying
 overheads, but also
 garbage collection costs, which may be substantial in the worst case.
 
-\subsection{Nemo examples}
+\section{Nemo examples}
 \label{sect:nemo}
 
 We present a few Nemo code examples which double as
 benchmark problems.
 
-\subsubsection{Multivariate polynomials}
+\subsection{Multivariate polynomials}
 
 The Fateman benchmark
 tests arithmetic in $\mathbb{Z}[x_1,\ldots,x_k]$
@@ -278,15 +280,11 @@ cases (this benchmark could also be performed
 using nested dense univariate arithmetic, i.e.\ in $\mathbb{Z}[x][y][z][t]$).
 
 Nemo (generic) is our Julia implementation of Johnson's sparse
-multiplication algorithm for generic coefficients.
-Nemo uses Flint instead of the generic
-code by default over $\mathbb{Z}$, but we
-have invoked the generic algorithm here to compare Julia and C.
-Flint (no asm) is essentially
-the same algorithm in C for the coefficient ring $\mathbb{Z}$,
-and Flint (asm) has additional assembly optimisations for the coefficient
-arithmetic.
-
+multiplication algorithm which handles $R[x_1,\ldots,x_k]$
+for generic coefficient rings $R$.
+Flint (no asm) is a reimplementation of the same
+algorithm in C for the special case $R = \mathbb{Z}$,
+and Flint (asm) is an assembly optimised version of this code.
 Finally, Flint (array) and Giac implement an algorithm designed
 for dense polynomials, which consists of accumulating terms
 into a big array covering all possible exponents.
@@ -318,8 +316,12 @@ $n$ & SageMath & Magma & Nemo & Flint & Flint & Flint & Giac \\
 \end{small}
 \end{table}
 
-It is somewhat remarkable that the generic Julia implementation
-of Johnson's algorithm comes
+By default, Nemo uses Flint for multivariate polynomials
+over $R = \ZZ$ instead of the generic
+Julia code.
+We have timed both versions here
+to provide a comparison between Julia and C.
+It is somewhat remarkable that the generic Julia code comes
 within a factor two of our C version in Flint (without asm),
 and even runs slightly faster than the C code in Magma.
 
@@ -344,7 +346,7 @@ $n$ & SageMath & Magma & Nemo & Flint & Flint & Giac \\
 \end{small}
 \end{table}
 
-\subsubsection{Generic resultant}
+\subsection{Generic resultant}
 
 The following example computes a resultant
 in the ring $((\operatorname{GF}(17^{11})[y])/(y^3 + 3xy + 1))[z]$,
@@ -368,7 +370,7 @@ resultant(s, t)
 This example takes 179907~s in SageMath~6.8, 82 s in Magma V2.21-4
 and 0.2 s in Nemo-0.4.
 
-\subsubsection{Generic linear algebra}
+\subsection{Generic linear algebra}
 
 We compute the determinant of a random $80\times80$ matrix
 with entries in a cubic number field.
@@ -395,7 +397,7 @@ det(M)
 This takes 5893~s in SageMath~6.8, 21.9~s in Pari/GP~2.7.4 \cite{pari}, 5.3~s in Magma V2.21-4,
 and 2.4~s in Nemo-0.4.
 
-\section{Algorithms in Nemo}
+\section{Generic algorithms in Nemo}
 \label{sect:generic}
 
 Many high level algorithms in number theory and computer algebra rely on
@@ -403,7 +405,7 @@ the efficient implementation of fundamental algorithms.
 We next discuss some of the algorithms
 used in Nemo for generic polynomials and matrices.
 
-\subsection{Generic polynomial algorithms}
+\subsection{Polynomial algorithms}
 
 For generic coefficient rings, Nemo implements dense univariate polynomials,
 truncated power series (supporting both relative and absolute precision models),
@@ -441,7 +443,7 @@ the lowest degree as the main variable for the computation, with the other varia
 following in increasing order of degree thereafter. But our heuristic heavily favours
 variables in which the polynomial is monic.
 
-\subsection{Generic matrix algorithms}
+\subsection{Matrix algorithms}
 
 For computing the determinant over a generic commutative ring, we implemented a generic
 algorithm making use of Clow sequences \cite{clow} which uses only $O(n^4)$ ring operations
@@ -585,11 +587,10 @@ A generic version of this algorithm is implemented in Julia code in Nemo, and
 an efficient version over $\mathbb{Z}$ using the Chinese remaindering trick
 is implemented in Flint and made available in Nemo.
 
-\subsection{C/C++ wrappers in Nemo}
+\section{C/C++ wrappers in Nemo}
 \label{sect:wrappers}
 
-
-\subsubsection{Flint: arithmetic and number theory}
+\subsection{Flint: arithmetic and number theory}
 
 Flint provides arithmetic over
 $\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{Z}/n\mathbb{Z}$,
@@ -599,24 +600,31 @@ of these ground rings.
 Nemo implements elements of these rings as thin wrappers of the
 Flint C types.
 
-Flint's multiplication in $\mathbb{Z}[x]$
+Flint uses a number of specialised techniques for each domain.
+For example, Flint's multiplication in $\mathbb{Z}[x]$
 uses a best-of-breed algorithm which selects classical multiplication,
 Karatsuba multiplication, Kronecker segmentation or a 
 Sch\"{o}nhage-Strassen FFT, with accurate cutoffs
 between algorithms, depending on the degrees and coefficient sizes.
 
+In some cases, Flint provides separate implementations
+for word-size and arbitrary-size coefficients.
+Nemo wraps both versions and transparently selects the
+optimised word-size version when possible.
+
 Additional Flint algorithms wrapped by Nemo include
 primality testing, polynomial factorisation, LLL, and Smith and Hermite
 normal forms of integer matrices.
 
-\subsubsection{Arb: arbitrary precision ball arithmetic}
+\subsection{Arb: arbitrary precision ball arithmetic}
 
 Computing over $\mathbb{R}$ and $\mathbb{C}$ requires
 using some approximate model for these fields.
 The most common model is floating-point arithmetic.
-However, for many computer algebra algorithms, the error analysis
-necessary to guarantee correct results with floating-point arithmetic
-becomes impractical to do by hand.
+However, for many computer algebra algorithms,
+the error analysis necessary to guarantee correct
+results with floating-point arithmetic
+becomes impractical.
 Interval arithmetic solves this problem by effectively making
 error analysis automatic.
 
@@ -632,7 +640,7 @@ Like Flint, Arb systematically uses asymptotically fast algorithms
 for operations such as polynomial multiplication, with tuning
 for different problem sizes.
 
-Arb is designed to allow lazy evaluation: the user can
+Many problems can be solved using lazy evaluation: the user can
 try a computation with some tentative precision $p$ and restart
 with precision $2p$ if that fails. The precision can be set
 optimally when a good estimate for the minimal
@@ -642,21 +650,17 @@ error bounds simply provide a certificate.
 
 Alternative implementations of $\mathbb{R}$ and $\mathbb{C}$
 may be added to Nemo in the future.
-For example, in some applications, it would be more convenient to use a lazy
-bit stream abstraction in which the precision for individual
-numbers is increased automatically.
-This typically requires storing a symbolic DAG representation,
-which potentially becomes very costly.
-In contrast, the current model has similar performance to
-ordinary arbitrary-precision floating-point arithmetic,
-but with the benefit of providing error bounds.
+For example, it would sometimes be more convenient to use a lazy
+bit stream abstraction in which individual numbers
+store a symbolic DAG representation to allow automatically
+increasing their own precision.
 
 %Such an approach has previously been explored in MMXlib~\cite{mmxlibeffective} and iRRAM~\cite{irram}
 %among others.
 %Implementing lazy numbers on top of Arb in Julia
 %would be an interesting future project.
 
-\subsubsection{Antic: algebraic number fields}
+\subsection{Antic: algebraic number fields}
 
 Antic is a C library, depending on Flint, for
 doing efficient computations in algebraic number fields. 
