@@ -47,8 +47,8 @@
    \email{thofmann@mathematik.uni-kl.de}
 \and
 \alignauthor Fredrik Johansson\\
-   \affaddr{Inria Bordeaux \&}\\
-   \affaddr{Institut de Math\'{e}matiques de Bordeaux} \\
+   \affaddr{Inria Bordeaux \& Institut de}\\
+   \affaddr{Math\'{e}matiques de Bordeaux} \\
    \affaddr{33400 Talence, France}\\
    \email{fredrik.johansson@gmail.com}
 }
@@ -61,7 +61,7 @@ for computer algebra and number theory.
 We demonstrate that high performance generic
 algorithms can be implemented in Julia, without the need to resort to a low-level C
 implementation.
-For specialised algorithms, we exploit Julia's efficient
+For specialised algorithms, we use Julia's efficient
 native C interface to wrap
 existing C/C++ libraries such
 as Flint, Arb, Antic and Singular.
@@ -73,7 +73,7 @@ arithmetic.
 
 \section{Introduction}
 
-Nemo\footnote{\url{http://nemocas.org}} is a computer algebra package for the Julia programming language.
+Nemo (\url{http://nemocas.org}) is a computer algebra package for the Julia programming language.
 The eventual aim is
 to provide highly performant commutative algebra, number theory, group theory and discrete
 geometry routines.
@@ -83,24 +83,22 @@ libraries (Flint \cite{flint}, Arb \cite{arb}, Antic \cite{antic} and Singular
 \cite{singular}), and
 implementations of generic algorithms and mathematical data
 structures in the Julia language. So far the fully recursive, generic constructions include
-univariate polynomial rings, power series rings, residue rings (modulo principal ideals),
-fraction fields, matrices and more recently multivariate polynomials with a sparse
-distributed representation.
+univariate and multivariate
+polynomial rings, power series rings, residue rings (modulo principal ideals),
+fraction fields, and matrices.
 
-The contribution of our work is twofold. First, we demonstrate
+We demonstrate
 that Julia is effective for implementing high performance computer
-algebra algorithms. Second, our implementations
+algebra algorithms. Our implementations also
 include a number of
 improvements over the state of the art
 in existing computer algebra systems.
 
-This paper is structured as follows.
-Section~\ref{sect:domains} discusses our motivation
-for using Julia
+Section~\ref{sect:domains} of this paper discusses the choice of Julia
 and our approach to implementing mathematical structures in Julia.
 We also demonstrate basic use of Nemo.
-In sections \ref{sect:generic} and \ref{sect:wrappers},
-we discuss in more detail the generic algorithms and C/C++ wrappers
+Sections \ref{sect:generic}
+discusses in more detail the algorithms and wrappers
 implemented in Nemo.
 Finally, section~\ref{sect:hecke} discusses Hecke, a Julia
 package that builds on Nemo to cover
@@ -116,14 +114,12 @@ multiple dispatch,
 just-in-time (JIT) compilation
 supported by dynamic type inference,
 automatic memory management (garbage collection),
-and powerful metaprogramming capabilities.
+metaprogramming capabilities,
+high performance builtin collection types (dictionaries, arrays, etc.),
+a powerful standard library,
+and a familiar imperative syntax (like Python).
 Julia also has an efficient native C interface, and more recently a C++ interface.
-
-Julia uses a familiar imperative syntax similar to Python or Matlab,
-with support for operator overloading.
-It provides high performance builtin collection types (dictionaries, iterators, arrays, etc.)
-and comes with a powerful standard library.
-Julia also provides an interactive console and can be used with Jupyter notebooks.
+In addition, Julia provides an interactive console and can be used with Jupyter notebooks.
 
 Julia was designed with high performance numerical algorithms in mind, and provides near
 C or Fortran performance for low-level arithmetic. This allows low-level algorithms to be
@@ -132,9 +128,7 @@ to JIT compile generic algorithms for specific types, in cases where a specific
 implementation does not exist in C.
  
 One of the most important features from a mathematical point of view is Julia's parametric type system.
-For example, in Julia, an array of integers has type \texttt{Array\{Int, 1\}} (the 1 refers to the dimensions
-of the array).
-
+For example, in Julia, a 1-dimensional array of integers has type \texttt{Array\{Int, 1\}}.
 We make heavy use of the parametric type system in Nemo and Hecke. Generic polynomials
 over a ring $R$ have type \texttt{GenPoly\{T\}} where $T$ is the type of elements of the ring $R$.
 Parametric types bear some resemblance to C++ template classes, except that in Julia the type $T$ can
@@ -218,7 +212,16 @@ by C libraries. As Julia objects can have precisely the same bit representation 
 parent objects can be passed directly to C functions. Additional fields in these objects can be safely
 appended if it is desirable to retain more information at the Julia level than the C/C++ level.
 
-\subsection{Generic and specialised types}
+Nemo wraps C types provided by libraries such as Flint
+for ground domains.
+For example, Nemo's \texttt{ZZ} wraps Flint's \texttt{fmpz}
+integer type.
+Nemo also uses specialised C implementations for nested structures
+where available.
+For instance, \texttt{PolynomialRing(R, "x")} which constructs
+the univariate polynomial ring $R[x]$ automatically switches to
+a wrapper of Flint's \texttt{fmpz\_poly} when $R = \ZZ$
+instead of using the Julia implementation designed for generic $R$.
 
 \subsection{In-place operations}
 
@@ -255,10 +258,11 @@ benchmark problems.
 
 \subsubsection{Multivariate polynomials}
 
-We first consider arithmetic in $\mathbb{Z}[x_1,\ldots,x_k]$.
-The Fateman benchmark consists of computing
-$f \cdot (f+1)$ where $f = (1 + x + y + z + t)^n$. In Nemo, this
-is expressed by the following Julia code (with $n = 30$):
+The Fateman benchmark
+tests arithmetic in $\mathbb{Z}[x_1,\ldots,x_k]$
+by computing
+$f \cdot (f+1)$ where $f = (1 + x + y + z + t)^n$. In Nemo,
+this is expressed by the following Julia code:
 
 \begin{verbatim}
 R,x,y,z,t = PolynomialRing(ZZ, ["x","y","z","t"])
@@ -269,11 +273,9 @@ f*(f+1)
 Table~\ref{tab:fateman} shows timing results compared to
 SageMath~7.4, Magma~V2.22-5 and Giac-1.2.2
 on a 2.2~GHz AMD Opteron 6174.
-All times are given in seconds.
-
 We used sparse multivariate polynomials in all
 cases (this benchmark could also be performed
-using nested univariate arithmetic, i.e.\ in $\mathbb{Z}[x][y][z][t]$).
+using nested dense univariate arithmetic, i.e.\ in $\mathbb{Z}[x][y][z][t]$).
 
 Nemo (generic) is our Julia implementation of Johnson's sparse
 multiplication algorithm for generic coefficients.
@@ -298,10 +300,10 @@ so only the Johnson algorithm is used.
 
 \begin{table}
 \center
-\caption{Time on the Fateman benchmark.}
+\caption{Time (s) on the Fateman benchmark.}
 \begin{small}
 \setlength{\tabcolsep}{2.5pt}
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\arraystretch}{1.15}
 \begin{tabular}{c c c c c c c c} \hline
 $n$ & SageMath & Magma & Nemo & Flint & Flint & Flint & Giac \\ 
     &          &       & (generic) & (no asm) & (asm) & (array) & \\ \hline
@@ -323,10 +325,10 @@ and even runs slightly faster than the C code in Magma.
 
 \begin{table}
 \center
-\caption{Time on the Pearce benchmark.}
+\caption{Time (s) on the Pearce benchmark.}
 \begin{small}
 \setlength{\tabcolsep}{2.5pt}
-\renewcommand{\arraystretch}{1.2}
+\renewcommand{\arraystretch}{1.15}
 \begin{tabular}{c c c c c c c} \hline
 $n$ & SageMath & Magma & Nemo & Flint & Flint & Giac \\ 
     &          &       & (generic) & (no asm) & (asm) & \\ \hline
@@ -393,7 +395,7 @@ det(M)
 This takes 5893~s in SageMath~6.8, 21.9~s in Pari/GP~2.7.4 \cite{pari}, 5.3~s in Magma V2.21-4,
 and 2.4~s in Nemo-0.4.
 
-\section{Generic algorithms in Nemo}
+\section{Algorithms in Nemo}
 \label{sect:generic}
 
 Many high level algorithms in number theory and computer algebra rely on
@@ -401,7 +403,7 @@ the efficient implementation of fundamental algorithms.
 We next discuss some of the algorithms
 used in Nemo for generic polynomials and matrices.
 
-\subsection{Polynomial algorithms}
+\subsection{Generic polynomial algorithms}
 
 For generic coefficient rings, Nemo implements dense univariate polynomials,
 truncated power series (supporting both relative and absolute precision models),
@@ -419,6 +421,8 @@ We make use of variants of the sparse algorithms described by Monagan and
 Pearce for heap-based multiplication \cite{heapmul}, exact division and division with
 remainder \cite{heapdiv} and powering~\cite{heappow}. For powering of polynomials with
 few terms, we make use of the multinomial formula.
+For multivariate polynomials over $\mathbb{Z}$, we used the generic Julia
+code as a template to implement a more optimised C version in Flint.
 
 In the case of pseudodivision for sparse, multivariate polynomials, we extract one
 of the variables and then implement a heap-based, univariate pseudoremainder
@@ -437,7 +441,7 @@ the lowest degree as the main variable for the computation, with the other varia
 following in increasing order of degree thereafter. But our heuristic heavily favours
 variables in which the polynomial is monic.
 
-\subsection{Matrix algorithms}
+\subsection{Generic matrix algorithms}
 
 For computing the determinant over a generic commutative ring, we implemented a generic
 algorithm making use of Clow sequences \cite{clow} which uses only $O(n^4)$ ring operations
@@ -581,10 +585,11 @@ A generic version of this algorithm is implemented in Julia code in Nemo, and
 an efficient version over $\mathbb{Z}$ using the Chinese remaindering trick
 is implemented in Flint and made available in Nemo.
 
-\section{C/C++ wrappers in Nemo}
+\subsection{C/C++ wrappers in Nemo}
 \label{sect:wrappers}
 
-\subsection{Flint: arithmetic and number theory}
+
+\subsubsection{Flint: arithmetic and number theory}
 
 Flint provides arithmetic over
 $\mathbb{Z}$, $\mathbb{Q}$, $\mathbb{Z}/n\mathbb{Z}$,
@@ -593,12 +598,6 @@ as well as matrices, polynomials and power series over most
 of these ground rings.
 Nemo implements elements of these rings as thin wrappers of the
 Flint C types.
-
-Nemo uses Flint types where available instead of generic code.
-For instance, \texttt{PolynomialRing(ZZ, "x")} automatically uses
-the Julia wrapper of Flint's \texttt{fmpz\_poly} instead of generic
-polynomials over Nemo's \texttt{ZZ} which wraps Flint's \texttt{fmpz}
-integer type.
 
 Flint's multiplication in $\mathbb{Z}[x]$
 uses a best-of-breed algorithm which selects classical multiplication,
@@ -610,7 +609,7 @@ Additional Flint algorithms wrapped by Nemo include
 primality testing, polynomial factorisation, LLL, and Smith and Hermite
 normal forms of integer matrices.
 
-\subsection{Arb: arbitrary precision ball arithmetic}
+\subsubsection{Arb: arbitrary precision ball arithmetic}
 
 Computing over $\mathbb{R}$ and $\mathbb{C}$ requires
 using some approximate model for these fields.
@@ -624,14 +623,16 @@ error analysis automatic.
 Nemo includes wrapper code for the C library Arb, which implements real numbers as
 arbitrary-precision midpoint-radius intervals (balls) $[m \pm r]$
 and complex numbers as rectangular boxes $[a \pm r_1]$ + $[b \pm r_2] i$.
-The precision is stored in the parent object.
+Nemo stores the precision in the parent object.
 For example, \texttt{R = ArbField(53)}
 creates a field of Arb real numbers with 53-bit precision.
 Arb also supplies types for polynomials, power series and matrices
 over $\mathbb{R}$ and $\mathbb{C}$, as well as transcendental functions.
+Like Flint, Arb systematically uses asymptotically fast algorithms
+for operations such as polynomial multiplication, with tuning
+for different problem sizes.
 
-With arbitrary-precision interval arithmetic, a form of
-coarse-grained lazy evaluation is possible: the user can
+Arb is designed to allow lazy evaluation: the user can
 try a computation with some tentative precision $p$ and restart
 with precision $2p$ if that fails. The precision can be set
 optimally when a good estimate for the minimal
@@ -639,32 +640,25 @@ required~$p$ is available; that is, the intervals
 can be used as if they were plain floating-point numbers, and the automatic
 error bounds simply provide a certificate.
 
-The midpoint-radius interval form is particularly efficient
-at high precision,
-since low precision is sufficient for the radii, which means that
-speed and memory efficiency is close to the optimum possible
-with plain arbitrary-precision floating-point arithmetic.
-Like Flint, Arb systematically uses asymptotically fast algorithms
-for operations such as polynomial multiplication, with tuning
-for different problem sizes.
-
-While alternative implementations of $\mathbb{R}$ and $\mathbb{C}$
-may be added to Nemo in the future, we envision Arb as a reasonable default,
-and we have used it with good success (see Hecke).
-
-In some applications, it would be more convenient to use a lazy
+Alternative implementations of $\mathbb{R}$ and $\mathbb{C}$
+may be added to Nemo in the future.
+For example, in some applications, it would be more convenient to use a lazy
 bit stream abstraction in which the precision for individual
 numbers is increased automatically.
 This typically requires storing a symbolic DAG representation,
 which potentially becomes very costly.
-Such an approach has previously been explored in MMXlib~\cite{mmxlibeffective} and iRRAM~\cite{irram}
-among others.
-Implementing lazy numbers on top of Arb in Julia
-would be an interesting future project.
+In contrast, the current model has similar performance to
+ordinary arbitrary-precision floating-point arithmetic,
+but with the benefit of providing error bounds.
 
-\subsection{Antic: algebraic number fields}
+%Such an approach has previously been explored in MMXlib~\cite{mmxlibeffective} and iRRAM~\cite{irram}
+%among others.
+%Implementing lazy numbers on top of Arb in Julia
+%would be an interesting future project.
 
-Antic (Algebraic Number Theory in C) is a C library, depending on Flint, for
+\subsubsection{Antic: algebraic number fields}
+
+Antic is a C library, depending on Flint, for
 doing efficient computations in algebraic number fields. 
 Nemo uses Antic for number field element arithmetic. We briefly describe some
 of the techniques Antic uses for fast arithmetic, but
@@ -707,7 +701,7 @@ sufficient space to store a full polynomial product, rather than the reduction o
 \label{sect:hecke}
 
 Hecke is a tool for algebraic number theory, written in Julia.
-Initially developed during the DFG priority project SPP 1489, Hecke includes the following functionality:
+Hecke includes the following functionality:
 \begin{itemize}
 \item
   element and ideal arithmetic in orders of number fields,
@@ -866,7 +860,7 @@ Hecke & 0.02 & 0.04 & 0.06 & 0.08
 
 \subsection{The use of interval arithmetic}
 
-Despite their character, one is often forced to study algebraic number fields in a real or complex setting, e.g. embeddings into an algebraically
+One is often forced to study algebraic number fields in a real or complex setting, e.g. embeddings into an algebraically
 closed field, or computing Dedekind zeta functions.
 This can be due to an intrinsic property of the problem, or it may be the fastest (known)
  way to solve the problem. Either way, the price is working with approximations.
@@ -995,6 +989,10 @@ Once we have this value we compute a real ball $B$ with $g_K(x_0) \in B$ and $\o
 we progressively increase precision until the the radius of the ball is small enough).
 By the choice of $x_0$, the midpoint of $B$ is an approximation to the logarithm of the residue with error at most $\varepsilon$.
 Again this yields a guaranteed result, but avoids the tedious error analysis due to the form of $g_K$.
+
+\section{Acknowledgments}
+
+Hecke was developed during the DFG priority project SPP 1489.
 
 \begin{thebibliography}{99}
 
