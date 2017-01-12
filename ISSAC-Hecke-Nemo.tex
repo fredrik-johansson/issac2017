@@ -94,7 +94,7 @@ This paper is structured as follows.
 Section~\ref{sect:domains} discusses our motivation
 for using Julia
 and our approach to implementing mathematical structures in Julia.
-Basic use of Nemo is demonstrated with a few benchmark examples.
+We also demonstrate basic use of Nemo.
 In sections \ref{sect:generic} and \ref{sect:wrappers},
 we discuss in more detail the generic algorithms and C/C++ wrappers
 implemented in Nemo.
@@ -102,13 +102,14 @@ Finally, section~\ref{sect:hecke} discusses Hecke, a Julia
 package that builds on Nemo to cover
 algebraic number theory.
 
-\section{Julia for computer algebra}
+\section{Computer algebra in Julia}
 \label{sect:domains}
 
 Julia \cite{julia} is a sophisticated, modern programming language which is designed
-to be both performant and flexible. Julia was written for technical computing with a
-focus on numerics. However, it has found widespread use for general purpose
-applications.
+to be both performant and flexible.
+%Julia was written for technical computing with a
+%focus on numerics. However, it has found widespread use for general purpose
+%applications.
 Notable features include an innovative type system
 (with support for parametric types and multiple dispatch),
 just-in-time (JIT) compilation
@@ -117,9 +118,9 @@ and powerful metaprogramming capabilities.
 In addition, Julia has an efficient native C interface, and more recently an experimental C++ interface.
 
 Julia has a familiar imperative syntax (like Python and Matlab),
-including support for operator overloading.
+and supports operator overloading.
 It includes high performance collection types (dictionaries, iterators, arrays, etc.),
-automatic memory management (garbage collection) and comes with a powerful
+has automatic memory management (garbage collection) and comes with a powerful
 standard library.
 In addition, Julia provides an interactive console and support for Jupyter notebooks.
 These features enable rapid development and make Julia
@@ -142,8 +143,8 @@ be constrained to belong to a specified class of types.
 
 \subsection{Modelling domains in Julia}
 
-Julia provides two levels of types that we make use of: abstract and concrete types.
-Concrete types are as per the types that appear in languages such as Java, C or C++,
+Julia provides two levels of types: abstract and concrete types.
+Concrete types are like types in Java, C or C++,
 etc. Abstract types can be thought of as collections of types. They are used when writing generic
 functions that should work for any type in a collection.
 
@@ -171,12 +172,13 @@ Another way that we make use of Julia's abstract type system in Nemo/Hecke is to
 between the type of elements of fields, and the fields themselves, and similarly for all other
 kinds of domains in Nemo. 
 
-The diagram below shows the abstract type hierarchy in Nemo.
+Figure~\ref{fig:types} shows the abstract type hierarchy in Nemo.
 
 \begin{figure}[h]
 \centering
 \includegraphics[scale=0.21]{types.png}
 \caption{The Nemo abstract type hierarchy}
+\label{fig:types}
 \end{figure}
 
 Naively, one may expect that specific mathematical domains in Nemo/Hecke can be modeled as types
@@ -201,7 +203,7 @@ arbitrary information, such as the modulus $n$ in $\mathbb{Z}/n\mathbb{Z}$. Each
 an element of the ring then contains a pointer to this parent object.
 
 This model of mathematical parent objects is taken from SageMath \cite{sage} which in turn followed
-the Magma \cite{magma} computer algebra system.
+Magma \cite{magma}.
 
 Julia allows ordinary objects to be made callable. We make use of the facility to write coercions
 and constructors for elements of mathematical domains in Nemo/Hecke. For example, the following
@@ -221,13 +223,13 @@ appended if it is desirable to retain more information at the Julia level than t
 
 \subsection{In-place operations}
 
-C libraries such as GMP/MPIR and Flint allow mutating
+C libraries such as Flint allow mutating
 objects in-place, which improves performance
 especially when making incremental updates
-to large, nested objects.
-Nemo objects are immutable, but local mutation is
-acceptable while an object is being created,
-and Nemo provides special methods for this purpose.
+to large objects.
+Nemo objects are ostensibly immutable,
+but special mutation methods
+are provided for use in critical spots.
 Instead of writing
 \begin{verbatim}
 s += a * b
@@ -251,15 +253,13 @@ garbage collection costs, which may be substantial in the worst case.
 
 We present a few Nemo code examples which double as
 benchmark problems.
-Additional benchmarks are available
-at \url{http://nemocas.org/benchmarks.html}.
 
 \subsubsection{Multivariate polynomials}
 
 We first consider arithmetic in $\mathbb{Z}[x_1,\ldots,x_k]$.
 The Fateman benchmark consists of computing
 $f \cdot (f+1)$ where $f = (1 + x + y + z + t)^n$. In Nemo, this
-is expressed by the following Julia code:
+is expressed by the following Julia code (with $n = 30$):
 
 \begin{verbatim}
 R,x,y,z,t = PolynomialRing(ZZ, ["x","y","z","t"])
@@ -276,18 +276,18 @@ We used sparse multivariate polynomials in all
 cases (this benchmark could also be performed
 using nested univariate arithmetic, i.e.\ in $\mathbb{Z}[x][y][z][t]$).
 
-Nemo (generic) is our implementation of Johnson's sparse
-multiplication algorithm for generic coefficients in Julia.
-This implementation is not used by default over $\mathbb{Z}$, but we
-have included it here to give a comparison between
-Julia and C.
+Nemo (generic) is our Julia implementation of Johnson's sparse
+multiplication algorithm for generic coefficients.
+Nemo uses Flint instead of the generic
+code by default over $\mathbb{Z}$, but we
+have invoked the generic algorithm here to compare Julia and C.
 Flint (no asm) is essentially
 the same algorithm in C for the coefficient ring $\mathbb{Z}$,
 and Flint (asm) has additional assembly optimisations for the coefficient
 arithmetic.
 
 Finally, Flint (array) and Giac implement an algorithm designed
-for dense polynomials, which consists of accumulating all terms
+for dense polynomials, which consists of accumulating terms
 into a big array covering all possible exponents.
 
 Table~\ref{tab:pearce} shows timing results on the Pearce
@@ -371,8 +371,8 @@ and 0.2 s in Nemo-0.4.
 
 We compute the determinant of a random $80\times80$ matrix
 with entries in a cubic number field.
-This benchmark is designed to test generic linear algebra over a field
-where there is coefficient blowup. The number field arithmetic is
+This benchmark tests generic linear algebra over a field
+with coefficient blowup. The number field arithmetic is
 provided by Antic.
 
 \begin{verbatim}
@@ -399,16 +399,16 @@ and 2.4~s in Nemo-0.4.
 
 Many high level algorithms in number theory and computer algebra rely on
 the efficient implementation of fundamental algorithms.
-In this section, we discuss some of the algorithms
-implemented in Nemo for generic polynomials and matrices.
+We next discuss some of the algorithms
+used in Nemo for generic polynomials and matrices.
 
 \subsection{Polynomial algorithms}
 
 For generic coefficient rings, Nemo implements dense univariate polynomials,
-power series (supporting both relative and absolute precision models),
+truncated power series (supporting both relative and absolute precision models),
 and multivariate polynomials in sparse distributed format.
 
-The generic polynomial resultant code in Nemo computes the resultant using subresultant
+The generic polynomial resultant code in Nemo uses subresultant
 pseudoremainder sequences. This code can even be called for polynomials over a
 ring with zero divisors, so long as impossible inverses are caught. The exception
 can be caught using a try/catch block in Julia and a fallback method called, e.g.\
@@ -466,15 +466,14 @@ of Danilevsky for computing the characteristic polynomial, into a fraction-free
 version.
 
 Danilevsky's method works by applying similarity transforms to reduce the
-matrix to Frobenius form. Normally such computations are computed over a
+matrix to Frobenius form. Normally such computations are done over a
 field, however each of the outer iterations in the algorithm introduce only
 a single denominator. Scaling by this denominator allows us to avoid
 fractions.
-
-Of course this then introduces the problem that the entries become larger
-as the algorithm proceeds because of the scaling. However, conveniently
+The entries become larger
+as the algorithm proceeds because of the scaling, but conveniently
 it is possible to prove that the introduced scaling factor can be removed 
-one step later in the algorithm. This is an exact division and doesn't
+one step later in the algorithm. This is an exact division and does not
 lead to denominators.
 
 Removing such a factor has to be done in a way that respects the
@@ -512,7 +511,7 @@ sum is $V$. Then the least common multiple of their minimal polynomials is
 the minimal polynomial of $M$.
 
 Instead of choosing random vectors $v_i$, our algorithm starts with
-$v_1 = e_1 = (1, 0, 0, \ldots, 0)$ and at each step chooses $v_i$ to be
+$v_1 = e_1 = (1, 0, \ldots, 0)$ and at each step chooses $v_i$ to be
 the first standard basis vector $e_j$ that is linearly independent of the
 Krylov subspaces $W_1, W_2, \ldots, W_{i-1}$ computed so far.
 
@@ -554,11 +553,11 @@ deterministic way we choose these as the first standard basis vector not
 in the sum of the Krylov subspaces computed so far. 
 
 Combining all the generators of the Krylov subspaces for all the primes~$p$
-then gives us a small set of generators $v_i$ for the Krylov subspaces over
-$\mathbb{Z}$ (not necessarily a minimal set).
+then gives us a small (not necessarily minimal) set of generators $v_i$
+for the Krylov subspaces over $\mathbb{Z}$.
 
-Suppose that  $f$ is a purported minimal polynomial that is believed
-heuristically to be correct, since the Chinese remaindering has stabilised.
+Suppose that $f$ is believed to be the correct minimal polynomial,
+since the Chinese remaindering has stabilised.
 On average, it is relatively cheap to compute $f(M)v_i$ for each such
 vector $v_i$. If $f(M)v_i = 0$ for each of the vectors $v_i$ then $f$ is
 in fact the minimal polynomial.
@@ -708,7 +707,7 @@ sufficient space to store a full polynomial product, rather than the reduction o
 \section{Hecke: algebraic number theory in Julia}
 \label{sect:hecke}
 
-Hecke is a tool for algebraic number theory, written in the Julia programming language.
+Hecke is a tool for algebraic number theory, written in Julia.
 Initially developed during the DFG priority project SPP 1489, Hecke includes the following functionality:
 \begin{itemize}
 \item
@@ -732,7 +731,7 @@ For most computational challenges we rely on well known techniques as described 
 
 A classical result is that in Dedekind domains, as for the ring of integers of a number field, any
 ideal can be generated using only two elements, one of which can be chosen
-at random in the ideal. This representation is efficient in terms of its storage requirement in comparison to store a
+at random in the ideal. This representation is efficient in terms of space compared to storing a
 $\ZZ$-basis. However, the key problem is the lack of
 efficient algorithms for working with two generators. We remark that one
 operation was always efficient using two generators: powering of ideals.
@@ -781,7 +780,7 @@ $v_P(\beta) = \max\{ k \mid \gamma^k\beta\in \mathcal O_K\}$ for all $\beta \in 
 
 It should be noted that (almost all) prime ideal are naturally computed
 in $\{p\}$-normal presentation. The key problem in using the theorem for
-multiplication lies in the fact that both ideals need to be given by an $S$-normal presentation for
+multiplication is that both ideals need to be given by an $S$-normal presentation for
 the same set $S$, which traditionally is achieved by recomputing
 a suitable presentation from scratch, taking random candidates for the
 second generator until it works. Based on the following lemma, have developed a new algorithm that manages it at the cost 
@@ -932,7 +931,7 @@ If $\alpha$ is a torsion unit, then $\alpha$ is a primitive $k$-th root of unity
 In particular $K$ contains the $k$-th cyclotomic field and $\varphi(k)$ divides $n$.
 Since there are only finitely many $k$ with the property that $\varphi(k)$ divides $n$,
 for every such $k$ we can test $\alpha^k = 1$ and in this way decide whether $\alpha$ is a torsion unit.
-While this works well for small values of $n$, for large $n$ this quickly becomes inefficient.
+While this works well for small $n$, for large $n$ this quickly becomes inefficient.
 
 A second approach rests on the fact that torsion units are characterized by their conjugates: An element
 $\alpha$ is a torsion unit if and only if $\lvert \sigma_i(\alpha) \rvert = 1$ for $1 \leq i \leq d$.
@@ -968,7 +967,7 @@ Since the radii of the balls tend to $0$, by Lemma~\ref{lem:tor} the algorithm w
 For a number field $K$ and $s \in \CC$, $\operatorname{Re}(s) > 1$, the Dedekind zeta function of $K$ is defined as
 \[ \zeta_K(s) = \sum_{\{0\} \neq I \subseteq \mathcal O_K} \frac 1 {N(I)^s}, \]
 where the sum is over all nonzero ideals of the ring of integers $\mathcal O_K$ of $K$.
-This function has an analytic continuation to the whole complex plane with a simple pol at $1$. The celebrated analytic class number formula
+This function has an analytic continuation to the whole complex plane with a simple pole at $1$. The celebrated analytic class number formula
 (see~\cite{Cohen1993}) states that the residue at that pole encodes important arithmetic data of $K$:
 \[ \operatorname{res}(\zeta_K, 1) =\lim_{s \to 1}(s - 1)\zeta_K(s) = h_K \cdot \mathrm{reg}_K \cdot c_K, \]
 where $h_K$ is the class number, $\mathrm{reg}_K$ is the regulator and $c_K$ is another (easy to determine) constant depending on $K$.
