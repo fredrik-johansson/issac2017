@@ -811,10 +811,9 @@ If $0\ne\alpha\in \mathcal O_K$, then $\langle\alpha\rangle\cap \mathbb Z = \lan
 \end{lemma}
 
 \begin{theorem}[\cite{Pohst1997}]
-Let $A$ be a nonzero ideal. Then
-$(a, \alpha)$ is an $\{p \text{ prime} \mid p \text{ divides }a\}$-normal presentation for $A$ if and only if
-for $d = \min \alpha\mathcal O_K \cap \NN$ we have
-\[ \gcd(a, \frac{d}{\gcd(a, d)}) = 1.\]
+Let $A$ be a nonzero ideal. Then the tuple
+$(a, \alpha)$ is an $\{p \, | \, p \text{ divides }a\}$-normal presentation of $A$ if and only if
+$\gcd(a, {d}/{\gcd(a, d)}) = 1$, where $d = \min(\alpha\mathcal O_K \cap \NN)$.
 \end{theorem}
 
 Together with the above lemma, this allows for the rapid computation of a
@@ -825,16 +824,33 @@ norm, this is very efficient.
 To illustrate the speed of our algorithm, we created a list of ideals of bounded norm (here: 400) and
 took random products of 100 ideals in the field
 defined by the polynomial $X^n + 2$ for $n=16, 32, 64, 128$.
-The results are presented in the following table.
+The results are presented in Table~\ref{tab:ideals}.
 Times are given in seconds. A dash indicates that the computation took  more than 20 seconds.
-\begin{center}
-\begin{tabular}{c||c|c|c|c}
-$n$ & 16 & 32 & 64 & 128 \\\hline
-Magma & 14 & -& - & -        \\
-Pari & 0.05 & 0.18 & 0.96 & 5.4 \\
-Hecke & 0.02 & 0.04 & 0.06 & 0.08
+%\begin{center}
+%\begin{tabular}{c||c|c|c|c}
+%$n$ & 16 & 32 & 64 & 128 \\\hline
+%Magma & 14 & -& - & -        \\
+%Pari & 0.05 & 0.18 & 0.96 & 5.4 \\
+%Hecke & 0.02 & 0.04 & 0.06 & 0.08
+%\end{tabular}
+%\end{center}
+
+\begin{table}
+\center
+\caption{Time (s) on ideal multiplication.}
+\begin{small}
+\setlength{\tabcolsep}{2.5pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{c c c c} \hline
+$n$ & Magma & Pari & Hecke  \\ \hline
+     16  &  14.00 & 0.05 & 0.02   \\
+     32  &   -  &   0.18   &     0.04 \\
+     64  &   -  &     0.96   &     0.06    \\
+    128  &   -   &     5.40    &       0.08 
 \end{tabular}
-\end{center}
+\label{tab:ideals}
+\end{small}
+\end{table}
 
 %%
 %% Pari:
@@ -896,14 +912,13 @@ The following Hecke code illustrates this.
 QQx, x = PolynomialRing(QQ, "x")
 K, a = NumberField(x^3 + 3*x + 1, "a")
 alpha = a^2 + a + 1
-p = 128
-p' = p
+p = 128; p' = p
 
 while true
   CCy, y = PolynomialRing(AcbField(p'), "y")
   g = CCy(x^3 + 3*x + 1)
   rts = roots(g)
-  z = map(x^3 + x + 1, rts)
+  z = map(x^2 + x + 1, rts)
   if all([ radiuslttwopower(u, -p) for u in z])
     break
   else
@@ -914,7 +929,7 @@ end
 
 To perform the same task using floating point arithmetic would require a priori error analysis.
 Arb's ball arithmetic allows the error analysis to be carried along with the computation. This allows for fast development,
-which at the same time maintaining guaranteed results.
+while at the same time maintaining guaranteed results.
 
 \subsubsection{Torsion units}
 
