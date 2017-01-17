@@ -427,7 +427,7 @@ For multivariate polynomials over $\mathbb{Z}$, we used the generic Julia
 code as a template to implement a more optimised C version in Flint.
 
 In the case of pseudodivision for sparse, multivariate polynomials, we extract one
-of the variables and then implement a heap-based, univariate pseudoremainder
+of the variables and then use a heap-based, univariate pseudoremainder
 algorithm inspired by an unpublished manuscript of Monagan and Pearce.
 
 We make use of this pseudoremainder implementation to implement the subresultant
