@@ -467,8 +467,8 @@ are well-known.
 
 We have also been able to use this strategy in the computation
 of the characteristic polynomial. We have adapted the well-known 1937 method
-of Danilevsky for computing the characteristic polynomial, into a fraction-free
-version.
+of Danilevsky \cite{danilevsky} for computing the characteristic polynomial, into
+a fraction-free version.
 
 Danilevsky's method works by applying similarity transforms to reduce the
 matrix to Frobenius form. Normally such computations are done over a
@@ -490,8 +490,13 @@ to remove the common factor.
 Next we describe an algorithm we have implemented for efficient
 computation of minimal polynomial of an $n\times n$ integer matrix $M$.
 
-A standard approach to this problem is known as ``spinning''. 
-We first describe this idea for matrices over a field~$K$.
+A standard approach to this problem is known as ``spinning'' \cite{steel}.
+We provide a brief summary of the main ideas, to fix notation and then
+describe our contribution, which is a variant of the same basic idea, making
+use of chinese remaindering in a provably correct way.
+
+We first summarise the theory for matrices over a field~$K$. The theory
+is elementary, and can be found in undergraduate notes, for example \cite{conrad}.
 
 The main idea is to think of $M$ as a linear operator on an $n$-dimensional
 $K$-vector space $V$ and to write $V$ as a sum of invariant subspaces, 
@@ -507,77 +512,86 @@ One way to get the minimal polynomial of $M$ heuristically is to choose
 random vectors $v$, compute the associated Krylov subspaces and take their
 minimal polynomials $f_i$. When the least common multiple of such minimal
 polynomials stabilises, we have with high probability computed the minimal
-polynomial of $M$.
+polynomial of $M$. If not, further random vectors can be selected, and so
+on. Clearly the challenge is to know at which point the algorithm should
+be terminated to guarantee a correct output.
 
-However, a proof of termination can also be given as follows. Suppose that
+However, such a criterion can be given as follows. Suppose that
 we have vectors $v_1, v_2, \ldots, v_k$ such that their associated Krylov
 subspaces $W_1, W_2, \ldots, W_n$ are pairwise distinct and that their
 sum is $V$. Then the least common multiple of their minimal polynomials is
 the minimal polynomial of $M$.
 
-Instead of choosing random vectors $v_i$, our algorithm starts with
-$v_1 = e_1 = (1, 0, \ldots, 0)$ and at each step chooses $v_i$ to be
-the first standard basis vector $e_j$ that is linearly independent of the
-Krylov subspaces $W_1, W_2, \ldots, W_{i-1}$ computed so far.
+Instead of random vectors $v_i$, we choose vectors deterministically,
+as follows. Start with $v_1 = e_1 = (1, 0, \ldots, 0)$ and at each
+step choose $v_i$ to be the first standard basis vector $e_j$ that is
+linearly independent of the Krylov subspaces $W_1, W_2, \ldots, W_{i-1}$
+computed so far. The linear independence guarantees that the Krylov
+subspaces we compute will be pairwise distinct. Taking standard basis
+vectors in order guarantees that we eventually find a set of Krylov
+subspaces that sum to $V$.
 
-We keep track of which standard basis vectors are independent by
-incrementally reducing a matrix $B$ whose rows consist of all the
-linearly independent vectors from the Krylov sequences computed so
-far.
+For efficiency reasons, we keep track of and (incrementally) reduce
+a matrix $B$ whose rows consist of all the linearly independent
+vectors from the Krylov sequences computed so far. Any column without
+a pivot in this reduced matrix $B$ corresponds to a standard basis
+vector which is independent of the Krylov subspaces computed so far.
+As each new Krylov subspace is computed, we append the corresponding
+vectors to the matrix $B$, and reduce them.
 
-Any column without a pivot in this reduced matrix $B$ corresponds to a
-standard basis vector which is independent of the Krylov subspaces
-computed so far.
+Once the rank of this incrementally reduced matrix $B$ reaches $n$, the
+sum of the Krylov subspaces we have computed is $V$, and we are done.
 
-Once the rank of this incrementally reduced matrix $B$ reaches $n$, the sum
-of the Krylov subspaces we have computed is $V$ and we are done.
+We have been informed by personal communication that the algorithm used by
+Magma \cite{magma} uses spinning, however it uses a $p$-adic approach over
+$\mathbb{Z}$. Unfortunately we have not been able to find a publication
+outlining their method.
 
-In order to compute the minimal polynomial of a matrix $M$ over $\mathbb{Z}$,
-we make use of a multimodular approach, reducing the matrix $M$ modulo many
-small primes $p$ and applying the method described above. We then combine
-the minimal polynomials modulo the various primes $p$ using Chinese
-remaindering.
+We describe a multimodular variant of this idea. The idea is to reduce the
+matrix $M$ modulo many small primes $p$ and apply the method described above.
+We then combine the minimal polynomials modulo the various primes $p$ using
+Chinese remaindering.
 
 The only difficulty is knowing when to stop. Heuristically this happens
 when the Chinese remaindering stabilises. Whilst bounds on the number of
 primes required do exist, e.g. based on Ovals of Cassini, the bounds are
-typically extremely pessimistic. We prefer to stop as soon as the Chinese
-remaindering stabilises, but we need a proof of termination. 
+typically extremely pessimistic. We require a much better termination
+criterion that guarantees correctness. 
 
-It is unfortunately way too expensive to simply evaluate the minimal
-polynomial $f$ at the matrix $M$ to see if it is zero, since this requires
-taking powers of the matrix $M$, which requires $O(n^4)$ operations over
-$\mathbb{Z}$ in total.
+It is unfortunately too expensive to simply evaluate the minimal polynomial
+$f$ at the matrix $M$ and compare with zero.
 
-In order to give a proof of termination, we instead allow a small amount of
-information to leak from the modulo~$p$ minimal polynomial computations.
-Namely, we wish to know which standard basis vectors were used as
-generators of the Krylov subspaces modulo~$p$. We observe that these are
-almost always the same standard basis vectors for all primes~$p$ due to the
-deterministic way we choose these as the first standard basis vector not
-in the sum of the Krylov subspaces computed so far. 
+For our termination criterion, we instead allow a small amount of
+information to 'leak' from the modulo~$p$ minimal polynomial computations,
+namely, which standard basis vectors were used as generators of the Krylov
+subspaces modulo~$p$. This provides sufficient information to determine
+when the chinese remaindering should be terminated.
 
-Combining all the generators of the Krylov subspaces for all the primes~$p$
-then gives us a small (not necessarily minimal) set of generators $v_i$
-for the Krylov subspaces over $\mathbb{Z}$.
+We observe that almost always the same standard basis vectors are selected
+for all primes~$p$ due to the deterministic way we choose these as the
+first standard basis vector not in the sum of the Krylov subspaces computed
+so far. (In practice we use primes of approximately 32 or 64 bits, so that
+there is a low probability that the Krylov decomposition modulo $p$ is finer
+than that over $\mathbb{Z}$.)
 
-Suppose that $f$ is believed to be the correct minimal polynomial,
-since the Chinese remaindering has stabilised.
-On average, it is relatively cheap to compute $f(M)v_i$ for each such
-vector $v_i$. If $f(M)v_i = 0$ for each of the vectors $v_i$ then $f$ is
-in fact the minimal polynomial.
+Letting $S$ be the set of lifts to $\mathbb{Z}$ of all standard basis vectors
+selected in the algorithm, taken in aggregate over all primes $p$. By our
+observation, $S$ contains, and is not much larger, than the set of all basis
+vectors that would have been selected if we had worked over $\mathbb{Z}$.
+
+Suppose that $f$ is believed to be the correct minimal polynomial, e.g.
+because the Chinese remaindering has stabilised. If $f(M)v = 0$ for some vector
+$v$ then $f(M)M^kv = 0$ for all $k$. Thus, if $f(M)v_i = 0$ for all $v_i \in S$
+then $f(M)e_i = 0$ for all standard basis vectors, i.e. $f$ is in fact provably
+the minimum polynomial, giving us our termination condition.
+
+Since the set $S$ will generically contain not many more vectors than there are
+Krylov subspaces over $\mathbb{Z}$, the cost of computing the $f(M)v_i$ for
+$v_i \in S$ is usually very low, compared to computing $f(M)$ directly.
 
 In the worst case this algorithm still requires $O(n^4)$ operations, but
-this is far from the average case, even when the minimal polynomial is not
+this is far from the generic case, even when the minimal polynomial is not
 the characteristic polynomial.
-
-Of course we know that the associated Krylov subspaces $W_i$ sum to $V$
-because they do so modulo $p$.
-
-We have been informed by personal communication that the algorithm used by
-Magma \cite{magma} also uses spinning, however it uses a $p$-adic
-approach over $\mathbb{Z}$. Unfortunately we have not been able to find a
-publication outlining their method.
 
 In practice our multimodular algorithm seems to slightly outperform Magma on the
 examples we have tried, including matrices with minimal polynomial smaller 
@@ -1050,6 +1064,14 @@ H.~Cohen,
   Graduate Texts in Mathematics, vol. 138,
 \newblock Springer-Verlag, Berlin, 1993.
 
+\bibitem{conrad}
+K.~Conrad, {\em The minimum polynomial and some applications}, retrieved from
+\url{http://www.math.uconn.edu/~kconrad/blurbs/linmultialg/minpolyandappns.pdf}
+
+\bibitem{danilevsky}
+A.~Danilevsky, {\em The numerical solution of the secular equation}, (Russian),
+Matem. Sbornik, 44(2), 1937. pp. 169--171.
+
 \bibitem{singular}
 W.~Decker, G.~M.~Greuel, G.~Pfister and H.~Sch\"onemann, {\em Singular -- A computer algebra system for polynomial computations}, \url{http://www.singular.uni-kl.de}
 
@@ -1114,6 +1136,10 @@ V.~Shoup, {\em NTL: A library for doing number theory}, \url{http://www.shoup.ne
 
 \bibitem{clow}
 M.~Soltys, {\em Berkowitz's algorithm and clow sequences}, The Electronic Journal of Linear Algebra, International Linear Algebra Society, vol 9, Apr. 2002, pp. 42--54.
+
+\bibitem{steel}
+A.~Steel, {\em A new algorithm for the computation of canonical forms of matrices over fields}, J. Symbolic
+Computation (1997) 24, pp. 409--432.
 
 %\bibliographystyle{abbrv}
 %\bibliography{issac}
