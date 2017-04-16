@@ -20,6 +20,32 @@
 \providecommand{\RR}{\mathbb{R}}
 \providecommand{\CC}{\mathbb{C}}
 
+% fix vskip when reducing the font size
+\makeatletter
+\def\thebibliographyy#1{% 
+\ifnum\addauflag=0\addauthorsection\global\addauflag=1\fi
+     \section[References]{%    <=== OPTIONAL ARGUMENT ADDED HERE
+        {References} % was uppercased but this affects pdf bookmarks (SP/GM October 2004)
+          {\vskip 0pt} % GM Nov. 2006 / GM July 2000 (for somewhat tighter spacing) 
+         \@mkboth{{\refname}}{{\refname}}%
+     }%
+     \list{[\arabic{enumi}]}{%
+         \settowidth\labelwidth{[#1]}%
+         \leftmargin\labelwidth
+         \advance\leftmargin\labelsep
+         \advance\leftmargin\bibindent
+         \parsep=0pt\itemsep=1pt % GM July 2000
+         \itemindent -\bibindent
+         \listparindent \itemindent
+         \usecounter{enumi}
+     }%
+     \let\newblock\@empty
+     \raggedright % GM July 2000
+     \sloppy
+     \sfcode`\.=1000\relax
+}
+\makeatother
+
 \makeatletter
 \def\Ddots{\mathinner{\mkern1mu\raise\p@
 \vbox{\kern7\p@\hbox{.}}\mkern2mu
@@ -204,10 +230,12 @@ Julia allows ordinary objects to be made callable. We make use of the facility t
 and constructors for elements of mathematical domains in Nemo/Hecke. For example, the following
 code constructs $a = 3 \pmod{7}$.
 
+\begin{small}
 \begin{verbatim}
 R = ResidueRing(ZZ, 7)
 a = R(3)
 \end{verbatim}
+\end{small}
 
 We also make use of the parent object system to encode information such as context objects needed
 by C libraries. As Julia objects can have precisely the same bit representation as native C objects,
@@ -235,16 +263,20 @@ Nemo objects are ostensibly immutable,
 but special mutation methods
 are provided for use in critical spots.
 Instead of writing
+\begin{small}
 \begin{verbatim}
 s += a * b
 \end{verbatim}
+\end{small}
 in Nemo, which creates an object for \texttt{a * b}
 and then replaces \texttt{s} with yet another new object, we
 create a reusable scratch variable \texttt{t} with the same type as \texttt{a}, \texttt{b} and \texttt{s} and use
+\begin{small}
 \begin{verbatim}
 mul!(t, a, b)
 addeq!(s, t)
 \end{verbatim}
+\end{small}
 which creates no new objects and avoids making a copy of the data in \texttt{s}
 that is not being modified.
 
@@ -266,11 +298,13 @@ by computing
 $f \cdot (f+1)$ where $f = (1 + x + y + z + t)^n$. In Nemo,
 this is expressed by the following Julia code:
 
+\begin{small}
 \begin{verbatim}
 R,x,y,z,t = PolynomialRing(ZZ, ["x","y","z","t"])
 f = (1+x+y+z+t)^30
 f*(f+1)
 \end{verbatim}
+\end{small}
 
 Table~\ref{tab:fateman} shows timing results compared to
 SageMath~7.4, Magma~V2.22-5 and Giac-1.2.2
@@ -353,6 +387,7 @@ in the ring $((\operatorname{GF}(17^{11})[y])/(y^3 + 3xy + 1))[z]$,
 demonstrating generic recursive rings and polynomial
 arithmetic. Flint is used for univariate polynomials over a finite field.
 
+\begin{small}
 \begin{verbatim}
 R, x = FiniteField(17, 11, "x")
 S, y = PolynomialRing(R, "y")
@@ -366,6 +401,7 @@ s = f^12
 t = (s + g)^12
 resultant(s, t)
 \end{verbatim}
+\end{small}
 
 This example takes 179907~s in SageMath~6.8, 82 s in Magma V2.21-4
 and 0.2 s in Nemo-0.4.
@@ -378,6 +414,7 @@ This benchmark tests generic linear algebra over a field
 with coefficient blowup. The number field arithmetic is
 provided by Antic.
 
+\begin{small}
 \begin{verbatim}
 QQx, x = PolynomialRing(QQ, "x")
 K, a = NumberField(x^3 + 3*x + 1, "a")
@@ -393,6 +430,7 @@ end
 
 det(M)
 \end{verbatim}
+\end{small}
 
 This takes 5893~s in SageMath~6.8, 21.9~s in Pari/GP~2.7.4 \cite{pari}, 5.3~s in Magma V2.21-4,
 and 2.4~s in Nemo-0.4.
@@ -825,7 +863,7 @@ If $0\ne\alpha\in \mathcal O_K$, then $\langle\alpha\rangle\cap \mathbb Z = \lan
 \end{lemma}
 
 \begin{theorem}[\cite{Pohst1997}]
-Let $A$ be a nonzero ideal. Then the tuple
+Let $A$ be a nonzero ideal. Then
 $(a, \alpha)$ is an $\{p \, | \, p \text{ divides }a\}$-normal presentation of $A$ if and only if
 $\gcd(a, {d}/{\gcd(a, d)}) = 1$, where $d = \min(\alpha\mathcal O_K \cap \NN)$.
 \end{theorem}
@@ -912,16 +950,16 @@ approximations.
 In Hecke this is done using ball arithmetic. Let $\alpha = \sum a_j X^j$ be an element of $K$. 
 Assume that we want to find $\hat \sigma_i(\alpha) \in \RR$ with $\lvert \sigma_i(\alpha) - \hat \sigma_i(\alpha) \rvert \leq 2^{-p}$
 for some precision $p \in \ZZ_{\geq 1}$.
-
-Using Arb's polynomial root finding functionality and some initial precision $p' \geq p$ we find balls $B_{p'}^{(i)} \subseteq \RR$ such
-that $\alpha_i \in B_{p'}^{(i)}$ and $\operatorname{diam}(B_{p'}^{(i)}) \leq 2^{-p'}$.
+Using Arb's polynomial root finding functionality and some initial precision $p' \geq p$ we find balls $\smash{B_{p'}^{(i)} \subseteq \RR}$ such
+that $\smash{\alpha_i \in B_{p'}^{(i)}}$ and $\smash{\operatorname{diam}(B_{p'}^{(i)}) \leq 2^{-p'}}$.
 Ball arithmetic then yields balls $B_\alpha^{(i)} \subseteq \RR$ with
 \[ \sigma_i(\alpha) = \sum_{1 \leq j \leq d} a_j \alpha_i^j \in \sum_{1 \leq j \leq d} a_j (B_{p'}^{(i)})^j\subseteq B_\alpha^{(i)}. \]
 
-Finally we check whether $\operatorname{diam}(B_\alpha^{(i)}) \leq 2^{-p}$. If not, we increase the working precision $p'$ and repeat.
-When finished, the midpoints of the balls $B_\alpha^{(i)}$ are approximations $\hat \sigma_i(\alpha)$ with the desired property.
+Finally we check whether $\smash{\operatorname{diam}(B_\alpha^{(i)}) \leq 2^{-p}}$. If not, we increase the working precision $p'$ and repeat.
+When finished, the midpoints of the balls $\smash{B_\alpha^{(i)}}$ are approximations $\hat \sigma_i(\alpha)$ with the desired property.
 The following Hecke code illustrates this.
 
+\begin{small}
 \begin{verbatim}
 QQx, x = PolynomialRing(QQ, "x")
 K, a = NumberField(x^3 + 3*x + 1, "a")
@@ -940,6 +978,7 @@ while true
   end
 end
 \end{verbatim}
+\end{small}
 
 To perform the same task using floating point arithmetic would require a priori error analysis.
 Arb's ball arithmetic allows the error analysis to be carried along with the computation. This allows for fast development,
@@ -974,12 +1013,12 @@ If $\alpha$ is not a torsion unit, then there exists some $1 \leq i \leq k$ such
 We can rephrase this using approximation as follows.
 
 \begin{lemma}\label{lem:tor}
-  Let $(B^{(i)}_k)_{k \geq 1}$, $1 \leq i \leq d$, be sequences of real balls with $\lvert \sigma_i(\alpha) \rvert \in B^{(i)}_k$ and $\max_i\operatorname{diam}(B_k^{(i)}) \to 0$ for $k \to \infty$.
+  Let $(\!B^{(i)}_k)_{k \geq 1}$, $\!1\!\!\leq\!i\!\!\leq\!\!d$, be sequences of real balls with $\lvert \sigma_i(\alpha) \rvert \in B^{(i)}_k$ and $\max_i\operatorname{diam}(B_k^{(i)}) \to 0$ for $k \to \infty$.
   \begin{enumerate}
   \item
-    If the element $\alpha$ is torsion, there exists $k \geq 1$ such that $1 < B_k^{(i)}$ for some $1 \leq i \leq d$.
+    If the element $\alpha$ is torsion, there exists $k \geq 1$ such that $\smash{1 < B_k^{(i)}}$ for some $1 \leq i \leq d$.
   \item
-    If the element $\alpha$ is non-torsion, there exists $k \geq 1$ such that $B_k^{(i)} < 1 + \log(d)/(6d^2)$ for all $1 \leq i \leq d$.
+    If the element $\alpha$ is non-torsion, there exists $k \geq 1$ such that $\smash{B_k^{(i)} < 1 + \log(d)/(6d^2)}$ for all $1 \leq i \leq d$.
   \end{enumerate}
 \end{lemma}
 
@@ -1025,10 +1064,10 @@ Again this yields a guaranteed result, but avoids the tedious error analysis due
 
 \section{Acknowledgments}
 
-Hecke and Nemo were developed during the DFG priority project SPP 1489.
-The last author was partially supported by ERC Starting Grant ANTICS 278537.
+This work was supported by DFG priority project SPP 1489 and ERC Starting Grant ANTICS 278537.
 
-\begin{thebibliography}{99}
+{\footnotesize
+\begin{thebibliographyy}{99}
 
 \bibitem{Bach1995}
 E.~Bach,
@@ -1143,6 +1182,7 @@ Computation (1997) 24, pp. 409--432.
 
 %\bibliographystyle{abbrv}
 %\bibliography{issac}
-\end{thebibliography}
+\end{thebibliographyy}}
+
 \end{document}
 
