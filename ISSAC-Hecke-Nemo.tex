@@ -208,7 +208,7 @@ good model.
 
 As an example, consider the ring $R = \mathbb{Z}/n\mathbb{Z}$. If we were to model the ring $R$
 as a type, then the type would need to contain information about the modulus $n$. This is not
-possible in Julia if $n$ is an object, e.g. a multiprecision integer.
+possible in Julia if $n$ is an object, e.g.\ a multiprecision integer.
 
 Putting such information in types is also not desirable. Julia dispatches on type, and each time
 we call a generic function with values of a new type, the function is recompiled by the
@@ -531,7 +531,7 @@ computation of minimal polynomial of an $n\times n$ integer matrix $M$.
 A standard approach to this problem is known as ``spinning'' \cite{steel}.
 We provide a brief summary of the main ideas, to fix notation and then
 describe our contribution, which is a variant of the same basic idea, making
-use of chinese remaindering in a provably correct way.
+use of Chinese remaindering in a provably correct way.
 
 We first summarise the theory for matrices over a field~$K$. The theory
 is elementary, and can be found in undergraduate notes, for example \cite{conrad}.
@@ -592,18 +592,18 @@ Chinese remaindering.
 
 The only difficulty is knowing when to stop. Heuristically this happens
 when the Chinese remaindering stabilises. Whilst bounds on the number of
-primes required do exist, e.g. based on Ovals of Cassini, the bounds are
-typically extremely pessimistic. We require a much better termination
-criterion that guarantees correctness. 
-
-It is unfortunately too expensive to simply evaluate the minimal polynomial
+primes required do exist, e.g.\ based on Ovals of Cassini, the bounds are
+typically extremely pessimistic.
+It is also unfortunately too expensive to simply evaluate the minimal polynomial
 $f$ at the matrix $M$ and compare with zero.
+We require a much better termination
+criterion that guarantees correctness.
 
 For our termination criterion, we instead allow a small amount of
 information to 'leak' from the modulo~$p$ minimal polynomial computations,
 namely, which standard basis vectors were used as generators of the Krylov
 subspaces modulo~$p$. This provides sufficient information to determine
-when the chinese remaindering should be terminated.
+when the Chinese remaindering should be terminated.
 
 We observe that almost always the same standard basis vectors are selected
 for all primes~$p$ due to the deterministic way we choose these as the
@@ -617,17 +617,17 @@ selected in the algorithm, taken in aggregate over all primes $p$. By our
 observation, $S$ contains, and is not much larger, than the set of all basis
 vectors that would have been selected if we had worked over $\mathbb{Z}$.
 
-Suppose that $f$ is believed to be the correct minimal polynomial, e.g.
+Suppose that $f$ is believed to be the correct minimal polynomial, e.g.\
 because the Chinese remaindering has stabilised. If $f(M)v = 0$ for some vector
 $v$ then $f(M)M^kv = 0$ for all $k$. Thus, if $f(M)v_i = 0$ for all $v_i \in S$
 then $f(M)e_i = 0$ for all standard basis vectors, i.e. $f$ is in fact provably
-the minimum polynomial, giving us our termination condition.
+the minimal polynomial, giving us our termination condition.
 
 Since the set $S$ will generically contain not many more vectors than there are
 Krylov subspaces over $\mathbb{Z}$, the cost of computing the $f(M)v_i$ for
 $v_i \in S$ is usually very low, compared to computing $f(M)$ directly.
 
-In the worst case this algorithm still requires $O(n^4)$ operations, but
+In the worst case this algorithm requires $O(n^4)$ operations, but
 this is far from the generic case, even when the minimal polynomial is not
 the characteristic polynomial.
 
@@ -733,7 +733,7 @@ polynomial of the number field. This helps speed up reduction modulo the definin
 
 The second is an array of precomputed powers $x^i$ modulo the
 defining polynomial $f(x)$. This allows fast reduction of polynomials whose degree exceeds
-that of the defining polynomial, e.g. in multiplication of number field elements $g$ and $h$
+that of the defining polynomial, e.g.\ in multiplication of number field elements $g$ and $h$
 where one wants wants to compute $g(x)h(x) \pmod{f(x)}$.
 
 The third precomputation is of traces $S_k = \sum_{i=1}^n \theta_i^k$ where the $\theta_i$
@@ -938,7 +938,7 @@ $n$ & Magma & Pari & Hecke  \\ \hline
 
 \subsection{The use of interval arithmetic}
 
-One is often forced to study algebraic number fields in a real or complex setting, e.g. embeddings into an algebraically
+One is often forced to study algebraic number fields in a real or complex setting, e.g.\ embeddings into an algebraically
 closed field, or computing Dedekind zeta functions.
 This can be due to an intrinsic property of the problem, or it may be the fastest (known)
  way to solve the problem. Either way, the price is working with approximations.
