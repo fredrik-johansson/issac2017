@@ -813,7 +813,7 @@ degree $n$ and $\mathcal O_K$ be its ring of integers.
 \begin{definition}
 Let $S$ be a finite set of prime numbers and $A$ a nonzero ideal such that
 all primes $p$ dividing the norm $N(A) = |\mathcal O_K/A|$ are in $S$.
-A tuple $(a, \alpha)$ is a $S$-normal presentation for $A$ if and only if
+A tuple $(a, \alpha)$ is an $S$-normal presentation for $A$ if and only if
 \begin{itemize}
 \setlength{\itemsep}{1pt}
 \setlength{\parskip}{0pt}
@@ -836,7 +836,7 @@ Let $A = \langle a, \alpha \rangle$ be an ideal in $S$-normal presentation. Then
 presentation for the same set $S$, then
 $AB = \langle ab, \alpha\beta\rangle$ is also a $S$-normal presentation.
 \item Let $\gamma = 1/\alpha$, $\langle g\rangle = \alpha \mathcal O_K \cap \ZZ$,
- $g = g_1g_2$ with coprime $g_1$, $g_2$ and $g_2$ only divisible be primes not in $S$. Then $A^{-1} = \langle 1, g_2\gamma\rangle$ is a $S$-normal presentation.
+ $g = g_1g_2$ with coprime $g_1$, $g_2$ and $g_2$ only divisible be primes not in $S$. Then $A^{-1} = \langle 1, g_2\gamma\rangle$ is an $S$-normal presentation.
 \item If $p$ is a prime number and $P= \langle p, \theta\rangle$ a prime ideal over $p$
 in $\{p\}$-normal presentation, then the $\{p\}$-normal presentation
 of $P^{-1} = \langle 1, \gamma\rangle$ yields a valuation element, that is,
@@ -856,7 +856,7 @@ of a few integer operations only.
 Let $S$ be a finite set of prime numbers and $A=\langle a, \alpha\rangle$ an ideal in
 $S$-normal presentation. Let $T$ be a second set of primes and set
 $s = \prod_{x\in S} x$ as well as $t = \prod_{x\in T\setminus S} x$. If $1 = \gcd(as, t) = uas + vt$,
-then $\langle a, \beta \rangle$ is a $S\cup T$-normal presentation, where $\beta = vt\alpha + uas$.
+then $\langle a, \beta \rangle$ is an $S\cup T$-normal presentation, where $\beta = vt\alpha + uas$.
 \end{lemma}
 
 \begin{proof}
@@ -1049,9 +1049,9 @@ Since the radii of the balls tend to $0$, by Lemma~\ref{lem:tor} the algorithm w
 For a number field $K$ and $s \in \CC$, $\operatorname{Re}(s) > 1$, the Dedekind zeta function of $K$ is defined as
 \[ \zeta_K(s) = \sum_{\{0\} \neq I \subseteq \mathcal O_K} \frac 1 {N(I)^s}, \]
 where the sum is over all nonzero ideals of the ring of integers $\mathcal O_K$ of $K$.
-This function has an analytic continuation to the whole complex plane with a simple pole at $1$. The celebrated analytic class number formula
+This function has an analytic continuation to the whole complex plane with a simple pole at $s = 1$. The celebrated analytic class number formula
 (see~\cite{Cohen1993}) states that the residue at that pole encodes important arithmetic data of $K$:
-\[ \operatorname{res}(\zeta_K, 1) =\lim_{s \to 1}(s - 1)\zeta_K(s) = h_K \cdot \mathrm{reg}_K \cdot c_K, \]
+\[ \operatorname{Res}(\zeta_K, 1) =\lim_{s \to 1}(s - 1)\zeta_K(s) = h_K \cdot \mathrm{reg}_K \cdot c_K, \]
 where $h_K$ is the class number, $\mathrm{reg}_K$ is the regulator and $c_K$ is another (easy to determine) constant depending on $K$.
 
 As well as being an intriguing theoretical result, it is also an important tool during class group computations.
@@ -1064,14 +1064,14 @@ Since the aim is to illustrate the use of ball arithmetic, we will not give deta
 
 \begin{theorem}[Belabas-Friedmann]
 There exist functions $g_K$, $\varepsilon_K \colon \RR \to \RR$, with
-\[ \lvert \log(\operatorname{res}(\zeta_K, 1)) - g_K(x) \rvert \leq \varepsilon_K(x) \]
+\[ \lvert \log(\operatorname{Res}(\zeta_K, 1)) - g_K(x) \rvert \leq \varepsilon_K(x) \]
 for all $x \geq 69$. The evaluation of $g_K(x)$ involves only prime powers $p^m \leq x$ and prime ideal powers $\mathfrak p^m$ with
 $N(\mathfrak p^m) \leq x$. Moreover the function $\varepsilon_K$ is strictly decreasing and depends only on the degree and the
 discriminant of $K$.
 \end{theorem}
 
 Assume that $\varepsilon > 0$ and we want to find $z \in \RR$ such that
-\[ \lvert \log(\operatorname{res}(\zeta_K, 1)) - z \rvert \leq \varepsilon.\]
+\[ \lvert \log(\operatorname{Res}(\zeta_K, 1)) - z \rvert \leq \varepsilon.\]
 We first compute an $x_0$ such that $\varepsilon_K(x_0) < \varepsilon/2$. Note that since $\varepsilon_K$ is strictly decreasing,
 this can be done using ordinary floating point arithmetic with appropriate rounding modes.
 Once we have this value we compute a real ball $B$ with $g_K(x_0) \in B$ and $\operatorname{diam}(B) \leq \varepsilon/2$ (as usual
