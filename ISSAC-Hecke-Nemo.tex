@@ -797,7 +797,7 @@ ideal can be generated using only two elements, one of which can be chosen
 at random in the ideal. This representation is efficient in terms of space compared to storing a
 $\ZZ$-basis. However, the key problem is the lack of
 efficient algorithms for working with two generators. We remark that one
-operation was always efficient using two generators: powering of ideals.
+operation is always efficient using two generators: powering of ideals.
 
 A refinement of this idea, due to Pohst and Zassenhaus \cite[p. 400]{Pohst1997}, is a 
 \textit{normal} presentation. Here a finite set $S$ of prime numbers
@@ -831,12 +831,12 @@ The algorithmic importance comes from the following result.
 \begin{theorem}
 Let $A = \langle a, \alpha \rangle$ be an ideal in $S$-normal presentation. Then the following hold:
 \begin{enumerate}
-\item We have $N(A) = \gcd(a^n, N(\alpha))$
+\item We have $N(A) = \gcd(a^n, N(\alpha))$.
 \item If $B = \langle b, \beta\rangle$ is a second ideal in $S$-normal
 presentation for the same set $S$, then
 $AB = \langle ab, \alpha\beta\rangle$ is also a $S$-normal presentation.
 \item Let $\gamma = 1/\alpha$, $\langle g\rangle = \alpha \mathcal O_K \cap \ZZ$,
- $g = g_1g_2$ with coprime $g_1$, $g_2$ and $g_2$ only divisible be primes not in $S$. Then $A^{-1} = \langle 1, g_2\gamma\rangle$ is an $S$-normal presentation.
+ $g = g_1g_2$ with coprime $g_1$, $g_2$ and $g_2$ only divisible by primes not in $S$. Then $A^{-1} = \langle 1, g_2\gamma\rangle$ is an $S$-normal presentation.
 \item If $p$ is a prime number and $P= \langle p, \theta\rangle$ a prime ideal over $p$
 in $\{p\}$-normal presentation, then the $\{p\}$-normal presentation
 of $P^{-1} = \langle 1, \gamma\rangle$ yields a valuation element, that is,
@@ -849,7 +849,7 @@ in $\{p\}$-normal presentation. The key problem in using the theorem for
 multiplication is that both ideals need to be given by an $S$-normal presentation for
 the same set $S$, which traditionally is achieved by recomputing
 a suitable presentation from scratch, taking random candidates for the
-second generator until it works. Based on the following lemma, have developed a new algorithm that manages it at the cost 
+second generator until it works. Based on the following lemma, we have developed a new algorithm that manages it at the cost 
 of a few integer operations only.
 
 \begin{lemma}
