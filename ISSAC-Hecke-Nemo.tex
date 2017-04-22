@@ -605,11 +605,10 @@ We then combine the minimal polynomials modulo the various primes $p$ using
 Chinese remaindering.
 
 The minimal polynomial of the reduction $M_{(p)}$ of $M$ modulo $p$ is the
-reduction modulo $p$ of the minimal polynomial $m(T)$ of $M$ if $p$ doesn't
-divide the discriminant of $m(T)$. Thus, we may have to exclude finitely
-many primes $p$ from the Chinese remaindering. This is detected if the
-degrees of the minimal polynomials modulo $p$ rise at any point during the
-algorithm.
+reduction modulo $p$ of the minimal polynomial $m(T)$ of $M$ for all but
+finitely many ``bad'' primes (see \cite{giesbrecht} Lemma 2.3). Bad primes
+are detected if the degrees of the minimal polynomials modulo $p$ rise at
+any point during the algorithm.
 
 Whilst bounds on the number of primes required in the Chinese remaindering
 exist, e.g.\ based on Ovals of Cassini, these bounds are typically extremely
@@ -618,7 +617,7 @@ minimal polynomial $m(T)$ at the matrix $M$ and compare with zero.
 
 We obtain a better termination criterion by allowing a small amount of
 information to 'leak' from the modulo~$p$ minimal polynomial computations.
-Namely, for one of the (nondegenerate) primes $p$, we record which standard
+Namely, for one of the (good) primes $p$, we record which standard
 basis vectors $v_i$ were used to generate the Krylov subspaces $W_i$ when
 computing the minimum polynomial of $M_{(p)}$. Recall that
 $V = W_1 + W_2 + \cdots + W_n$, where $M_{(p)}$ is thought of as a linear
@@ -1142,6 +1141,10 @@ binary floating-point library with correct rounding}, ACM Trans. Math. Soft., vo
 
 \bibitem{mca} 
 J.~von zur Gathen, J.~Gerhard, {\em Modern Computer Algebra}, Cambridge University Press, 1999.
+
+\bibitem{giesbrecht}
+M.~Giesbrecht, A.~Storjohann, {\em Computing rational forms of integer matrices}. Journal of Symbolic
+Computation, 2002, v. 34(3), pp. 157--172.
 
 \bibitem{gmp}
 T.~Granlund and the GMP development team, {\em The GNU Multi Precision Arithmetic 
