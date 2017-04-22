@@ -530,102 +530,113 @@ computation of minimal polynomial of an $n\times n$ integer matrix $M$.
 
 A standard approach to this problem is known as ``spinning'' \cite{steel}.
 We provide a brief summary of the main ideas, to fix notation and then
-describe our contribution, which is a variant of the same basic idea, making
-use of Chinese remaindering in a provably correct way.
+describe our contribution, which is a variant making use of Chinese
+remaindering in a provably correct way.
 
 We first summarise the theory for matrices over a field~$K$. The theory
-is elementary, and can be found in undergraduate notes, for example \cite{conrad}.
+relies of the following result, e.g. \cite{vinberg}.
 
-The main idea is to think of $M$ as a linear operator on an $n$-dimensional
-$K$-vector space $V$ and to write $V$ as a sum of invariant subspaces, 
-$V = W_1 + W_2 + \cdots + W_k$. If the restriction of $M$ to $W_i$ has
-minimal polynomial $f_i$ then the minimal polynomial of $M$ is
-$\lcm(f_1, f_2, \ldots, f_k)$.
+\begin{theorem}
+Suppose $M$ is a linear operator on a $K$-vector space $V$, and that
+$V = W_1 + W_2 + \cdots + W_n$ for invariant subspaces $W_i$. Then the
+minimal polynomial of $M$ is LCM$(m_1, m_2, \ldots, m_n)$, where $m_i$ is
+the minimal polynomial of $M$ restricted to $W_i$.
+\end{theorem}
 
-To generate such subspaces we construct so-called Krylov sequences. Given
-a vector $v \in V$ the Krylov subspace associated to $v$ is the linear
-subspace spanned by $\{v, Mv, M^2v, \ldots\}$.
+The subspaces $W_i$ we have in mind are the following.
 
-One way to get the minimal polynomial of $M$ heuristically is to choose
-random vectors $v$, compute the associated Krylov subspaces and take their
-minimal polynomials $f_i$. When the least common multiple of such minimal
-polynomials stabilises, we have with high probability computed the minimal
-polynomial of $M$. If not, further random vectors can be selected, and so
-on. Clearly the challenge is to know at which point the algorithm should
-be terminated to guarantee a correct output.
+\begin{definition}
+Given a vector $v$ in a vector space $V$ the \emph{Krylov subspace} $K(V, v)$
+associated to $v$ is the linear subspace spanned by $\{v, Mv, M^2v, \ldots\}$.
+\end{definition}
 
-However, such a criterion can be given as follows. Suppose that
-we have vectors $v_1, v_2, \ldots, v_k$ such that their associated Krylov
-subspaces $W_1, W_2, \ldots, W_n$ are pairwise distinct and that their
-sum is $V$. Then the least common multiple of their minimal polynomials is
-the minimal polynomial of $M$.
+Krylov subspaces are invariant subspaces and so these results lead to an
+algorithm for computing the minimal polynomial as follows.
 
-Instead of random vectors $v_i$, we choose vectors deterministically,
-as follows. Start with $v_1 = e_1 = (1, 0, \ldots, 0)$ and at each
-step choose $v_i$ to be the first standard basis vector $e_j$ that is
-linearly independent of the Krylov subspaces $W_1, W_2, \ldots, W_{i-1}$
-computed so far. The linear independence guarantees that the Krylov
-subspaces we compute will be pairwise distinct. Taking standard basis
-vectors in order guarantees that we eventually find a set of Krylov
-subspaces that sum to $V$.
+Start with $v_1 = e_1 = (1, 0, \ldots, 0)$ and let $W_1 = K(V, v_1)$.
+For each $i > 1$ let $v_i$ be the first standard basis vector $e_j$ that is
+linearly independent of $W_1 + W_2 + \cdots + W_{i-1}$. Set
+$W_i = K(V, v_i)$. 
 
-For efficiency reasons, we keep track of and (incrementally) reduce
-a matrix $B$ whose rows consist of all the linearly independent
-vectors from the Krylov sequences computed so far. Any column without
-a pivot in this reduced matrix $B$ corresponds to a standard basis
-vector which is independent of the Krylov subspaces computed so far.
-As each new Krylov subspace is computed, we append the corresponding
+By construction, $V = W_1 + W_2 + \cdots + W_n$, and the minimum polynomial
+of $M$ is the least common multiple of the minimal polynomials $m_i$ of
+$M$ restricted to the $W_i$.
+
+The minimal polynomials $m_i$ are easy to compute.
+For, if $v$, $Mv$, $M^2v, \ldots, M^{d-1}v$ is a basis for $W_i$,
+there is a linear relation 
+$$M^dv + c_{d-1}M^{d-1}v + \cdots + c_1Mv + c_0v = 0,$$
+for some $c_i \in K$, and no smaller such relation. Letting
+$$m_i(T) = c_0 + c_1T + \cdots + T^d$$, we have $m_i(M)(v) = 0$.
+
+It is easy to see that $m_i(M)(f(M)v) = 0$ for all polynomials $f(T) \in K[T]$
+and so $m_i(M)$ annihilates all of $W_i$. Thus $m_i$ is the required
+minimal polynomial. 
+ 
+To efficiently implement the above algorithm, we keep track of and
+(incrementally) reduce a matrix $B$ whose rows consist of all the
+linearly independent vectors from the Krylov sequences computed so far.
+Any column without a pivot in this reduced matrix $B$ corresponds to a
+standard basis vector which is independent of the Krylov subspaces computed
+so far. As each new Krylov subspace is computed, we append the corresponding
 vectors to the matrix $B$, and reduce them.
 
-Once the rank of this incrementally reduced matrix $B$ reaches $n$, the
-sum of the Krylov subspaces we have computed is $V$, and we are done.
+It is also possible to define the minimum polynomial of a matrix $M$ over
+$\mathbb{Z}$. This is due to the fact that the null ideal of a matrix $M$ over
+an integrally closed domain $D$ is principal (see \cite{brown}).
+
+In the case $D = \mathbb{Z}$, we can define the minimal polynomial $m(T)$ of $M$
+to be a (primitive) generator of this ideal. We have that $m(T)$ is monic since
+the characteristic polynomial of $M$ is monic and an element of the null ideal.
+By Gauss' Lemma for polynomials, this argument also shows that the minimal
+polynomial of $M$ is the same as that of $M$ considered as a matrix over
+$\mathbb{Q}$.
 
 We have been informed by personal communication that the algorithm used by
-Magma \cite{magma} uses spinning, however it uses a $p$-adic approach over
-$\mathbb{Z}$. Unfortunately we have not been able to find a publication
-outlining their method.
+Magma \cite{magma} for minimal polynomial computation over $\mathbb{Z}$ uses
+spinning, however it uses a $p$-adic approach. Unfortunately
+we have been unable to find a publication outlining their method.
 
-We describe a multimodular variant of this idea. The idea is to reduce the
-matrix $M$ modulo many small primes $p$ and apply the method described above.
+We describe a multimodular variant of the spinning approach. The idea is to
+reduce the matrix $M$ modulo many small primes $p$ and apply the method
+described above over the field $\mathbb{Z}/p\mathbb{Z}$, for each prime $p$.
+
 We then combine the minimal polynomials modulo the various primes $p$ using
 Chinese remaindering.
 
-The only difficulty is knowing when to stop. Heuristically this happens
-when the Chinese remaindering stabilises. Whilst bounds on the number of
-primes required do exist, e.g.\ based on Ovals of Cassini, the bounds are
-typically extremely pessimistic.
-It is also unfortunately too expensive to simply evaluate the minimal polynomial
-$f$ at the matrix $M$ and compare with zero.
-We require a much better termination
-criterion that guarantees correctness.
+The minimal polynomial of the reduction $M_{(p)}$ of $M$ modulo $p$ is the
+reduction modulo $p$ of the minimal polynomial $m(T)$ of $M$ if $p$ doesn't
+divide the discriminant of $m(T)$. Thus, we may have to exclude finitely
+many primes $p$ from the Chinese remaindering. This is detected if the
+degrees of the minimal polynomials modulo $p$ rise at any point during the
+algorithm.
 
-For our termination criterion, we instead allow a small amount of
-information to 'leak' from the modulo~$p$ minimal polynomial computations,
-namely, which standard basis vectors were used as generators of the Krylov
-subspaces modulo~$p$. This provides sufficient information to determine
-when the Chinese remaindering should be terminated.
+Whilst bounds on the number of primes required in the Chinese remaindering
+exist, e.g.\ based on Ovals of Cassini, these bounds are typically extremely
+pessimistic. It is also unfortunately too expensive to simply evaluate the
+minimal polynomial $m(T)$ at the matrix $M$ and compare with zero.
 
-We observe that almost always the same standard basis vectors are selected
-for all primes~$p$ due to the deterministic way we choose these as the
-first standard basis vector not in the sum of the Krylov subspaces computed
-so far. (In practice we use primes of approximately 32 or 64 bits, so that
-there is a low probability that the Krylov decomposition modulo $p$ is finer
-than that over $\mathbb{Z}$.)
+We obtain a better termination criterion by allowing a small amount of
+information to 'leak' from the modulo~$p$ minimal polynomial computations.
+Namely, for one of the (nondegenerate) primes $p$, we record which standard
+basis vectors $v_i$ were used to generate the Krylov subspaces $W_i$ when
+computing the minimum polynomial of $M_{(p)}$. Recall that
+$V = W_1 + W_2 + \cdots + W_n$, where $M_{(p)}$ is thought of as a linear
+operator on $V$.
 
-Letting $S$ be the set of lifts to $\mathbb{Z}$ of all standard basis vectors
-selected in the algorithm, taken in aggregate over all primes $p$. By our
-observation, $S$ contains, and is not much larger, than the set of all basis
-vectors that would have been selected if we had worked over $\mathbb{Z}$.
+Thinking of $M$ as a linear operator on a $\mathbb{Q}$-vector space $V'$,
+and letting $W'_i = K(V', v'_i)$, where $v'_i$ is the lift of $v_i$ to
+$\mathbb{Q}$, it is clear that $V' = W'_1 + W'_2 + \cdots + W'_n$.
 
-Suppose that $f$ is believed to be the correct minimal polynomial, e.g.\
-because the Chinese remaindering has stabilised. If $f(M)v = 0$ for some vector
-$v$ then $f(M)M^kv = 0$ for all $k$. Thus, if $f(M)v_i = 0$ for all $v_i \in S$
-then $f(M)e_i = 0$ for all standard basis vectors, i.e. $f$ is in fact provably
-the minimal polynomial, giving us our termination condition.
+Thus, if $m(T)$ is believed to be the minimal polynomial of $M$,
+e.g.\ because the Chinese remaindering has stabilised, then if $m(M)v'_i = 0$
+for all $i$, then $m(T)$ is the minimum polynomial of $M$ over $\mathbb{Q}$.
+This follows because if $m(M)v'_i = 0$ then $m(M)$ annihilates all of $W'_i$,
+and hence all of $V'$.
 
-Since the set $S$ will generically contain not many more vectors than there are
-Krylov subspaces over $\mathbb{Z}$, the cost of computing the $f(M)v_i$ for
-$v_i \in S$ is usually very low, compared to computing $f(M)$ directly.
+Note that the cost of computing the $m(M)v'_i$ for all $i$ is usually very low
+compared to computing $m(M)$ directly, since it consists of matrix-vector
+operations rather than expensive matrix-matrix multiplications.
 
 In the worst case this algorithm requires $O(n^4)$ operations, but
 this is far from the generic case, even when the minimal polynomial is not
@@ -1100,6 +1111,9 @@ J.-F.~Biasse, C.~Fieker,
   number fields},
 \newblock LMS J. Comput. Math., 17(suppl. A):385--403, 2014.
 
+\bibitem{brown}
+W.~Brown, {\em Null ideals and spanning ranks of matrices}, Comm. Algebra 26, (1998), pp. 2401--2417.
+
 \bibitem{magma}
 J.~J.~Cannon, W.~Bosma (Eds.), {\em Handbook of Magma Functions}, Edition 2.13 (2006)
 
@@ -1108,10 +1122,6 @@ H.~Cohen,
 \newblock {\em A course in computational algebraic number theory},
   Graduate Texts in Mathematics, vol. 138,
 \newblock Springer-Verlag, Berlin, 1993.
-
-\bibitem{conrad}
-K.~Conrad, {\em The minimum polynomial and some applications}, retrieved from
-\url{http://www.math.uconn.edu/~kconrad/blurbs/linmultialg/minpolyandappns.pdf}
 
 \bibitem{danilevsky}
 A.~Danilevsky, {\em The numerical solution of the secular equation}, (Russian),
@@ -1185,6 +1195,9 @@ M.~Soltys, {\em Berkowitz's algorithm and clow sequences}, The Electronic Journa
 \bibitem{steel}
 A.~Steel, {\em A new algorithm for the computation of canonical forms of matrices over fields}, J. Symbolic
 Computation (1997) 24, pp. 409--432.
+
+\bibitem{vinberg}
+E.~Vinberg, {\em A Course in Algebra}, American Mathematical Society, 2003, pp. 229.
 
 %\bibliographystyle{abbrv}
 %\bibliography{issac}
