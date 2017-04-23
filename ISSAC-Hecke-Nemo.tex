@@ -615,6 +615,7 @@ basis vectors $v_i$ were used to generate the Krylov subspaces $W_i$ when
 computing the minimal polynomial of $M_{(p)}$. Recall that
 $V = W_1 + W_2 + \cdots + W_n$, where $M_{(p)}$ is thought of as a linear
 operator on $V$.
+
 Thinking of $M$ as a linear operator on a $\mathbb{Q}$-vector space $V'$,
 and letting $W'_i = K(V', v'_i)$, where $v'_i$ is the lift of $v_i$ to
 $\mathbb{Q}$, it is clear that $V' = W'_1 + W'_2 + \cdots + W'_n$.
@@ -622,12 +623,12 @@ $\mathbb{Q}$, it is clear that $V' = W'_1 + W'_2 + \cdots + W'_n$.
 Thus, if $m(T)$ is believed to be the minimal polynomial of $M$,
 e.g.\ because the Chinese remaindering has stabilised, then if $m(M)v'_i = 0$
 for all $i$, then $m(T)$ is the minimal polynomial of $M$ over $\mathbb{Q}$.
-This follows because if $m(M)v'_i = 0$ then $m(M)$ annihilates all of $W'_i$,
+This follows because if $m(M)v'_i = 0$ then $m(M)$ annihilates all of $W'_i$ for all $i$,
 and hence all of $V'$.
 
-Note that the cost of computing the $m(M)v'_i$ for all $i$ is usually very low
+Rhe cost of computing the $m(M)v'_i$ is usually low
 compared to computing $m(M)$ directly, since it consists of matrix-vector
-operations rather than expensive matrix-matrix multiplications.
+rather than matrix-matrix multiplications.
 
 In the worst case this algorithm requires $O(n^4)$ operations over $\mathbb{Z}$
 (once we encounter a good prime), but this is far from the generic case, even when
@@ -753,8 +754,6 @@ products are first accumulated and their sum can be reduced at the end of the do
 
 To facilitate delayed reduction, all Antic number field elements are allocated with
 sufficient space to store a full polynomial product, rather than the reduction of such a product.
-
-\newpage
 
 \subsection{Singular: commutative algebra}
 
