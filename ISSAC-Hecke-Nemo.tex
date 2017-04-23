@@ -755,6 +755,12 @@ products are first accumulated and their sum can be reduced at the end of the do
 To facilitate delayed reduction, all Antic number field elements are allocated with
 sufficient space to store a full polynomial product, rather than the reduction of such a product.
 
+\subsection{Singular: commutative algebra}
+
+Singular \cite{singular} is a C/C++ package for commutative algebra, polynomial systems and algebraic
+geometry. Recently, we have helped prepare a Julia package called Singular.jl, which is compatible with
+Nemo. It will be described in a future article.
+
 \section{Hecke: algebraic number theory in Julia}
 \label{sect:hecke}
 
@@ -1119,7 +1125,8 @@ A.~Danilevsky, {\em The numerical solution of the secular equation}, (Russian),
 Matem. Sbornik, 44(2), 1937. pp. 169--171.
 
 \bibitem{singular}
-W.~Decker, G.~M.~Greuel, G.~Pfister and H.~Sch\"onemann, {\em Singular -- A computer algebra system for polynomial computations}, \url{http://www.singular.uni-kl.de}
+W.~Decker, G.~M.~Greuel, G.~Pfister and H.~Sch\"onemann, {\em Singular -- A computer algebra system
+for polynomial computations}, \url{http://www.singular.uni-kl.de}
 
 \bibitem{Dobrowolski1978}
 E.~Dobrowolski,
@@ -1180,9 +1187,6 @@ R.~J.~Schoof,
 \newblock In Computational methods in number theory, {P}art {II}, volume
   155 of Math. Centre Tracts, pages 235--286. Math. Centrum, Amsterdam,
   1982.
-
-\bibitem{ntl}
-V.~Shoup, {\em NTL: A library for doing number theory}, \url{http://www.shoup.net/ntl/}
 
 \bibitem{clow}
 M.~Soltys, {\em Berkowitz's algorithm and clow sequences}, The Electronic Journal of Linear Algebra, Int. Linear Algebra Society, vol 9, Apr. 2002, pp. 42--54.
