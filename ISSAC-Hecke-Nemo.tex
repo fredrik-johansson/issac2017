@@ -558,7 +558,7 @@ For each $i > 1$ let $v_i$ be the first standard basis vector $e_j$ that is
 linearly independent of $W_1 + W_2 + \cdots + W_{i-1}$. Set
 $W_i = K(V, v_i)$. 
 
-By construction, $V = W_1 + W_2 + \cdots + W_n$, and the minimum polynomial
+By construction, $V = W_1 + W_2 + \cdots + W_n$, and the minimal polynomial
 of $M$ is the least common multiple of the minimal polynomials $m_i$ of
 $M$ restricted to the $W_i$.
 
@@ -581,7 +581,7 @@ standard basis vector which is independent of the Krylov subspaces computed
 so far. As each new Krylov subspace is computed, we append the corresponding
 vectors to the matrix $B$, and reduce them.
 
-It is also possible to define the minimum polynomial of a matrix $M$ over
+It is also possible to define the minimal polynomial of a matrix $M$ over
 $\mathbb{Z}$. This is due to the fact that the null ideal of a matrix $M$ over
 an integrally closed domain $D$ is principal (see \cite{brown}).
 
@@ -619,7 +619,7 @@ We obtain a better termination criterion by allowing a small amount of
 information to 'leak' from the modulo~$p$ minimal polynomial computations.
 Namely, for one of the (good) primes $p$, we record which standard
 basis vectors $v_i$ were used to generate the Krylov subspaces $W_i$ when
-computing the minimum polynomial of $M_{(p)}$. Recall that
+computing the minimal polynomial of $M_{(p)}$. Recall that
 $V = W_1 + W_2 + \cdots + W_n$, where $M_{(p)}$ is thought of as a linear
 operator on $V$.
 
@@ -629,7 +629,7 @@ $\mathbb{Q}$, it is clear that $V' = W'_1 + W'_2 + \cdots + W'_n$.
 
 Thus, if $m(T)$ is believed to be the minimal polynomial of $M$,
 e.g.\ because the Chinese remaindering has stabilised, then if $m(M)v'_i = 0$
-for all $i$, then $m(T)$ is the minimum polynomial of $M$ over $\mathbb{Q}$.
+for all $i$, then $m(T)$ is the minimal polynomial of $M$ over $\mathbb{Q}$.
 This follows because if $m(M)v'_i = 0$ then $m(M)$ annihilates all of $W'_i$,
 and hence all of $V'$.
 
