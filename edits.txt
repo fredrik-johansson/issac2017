@@ -147,49 +147,95 @@ AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
 
 
 ----------- Overall evaluation -----------
-*** This is NOT a review but a summary of the expectations of the
-PC for the paper to get accepted ***
+> *** This is NOT a review but a summary of the expectations of the
+> PC for the paper to get accepted ***
 
-All remarks in the reviews need to be adressed carefully. The PC also
-pointed out some issues in the paper which are summarized below and
-should also be adressed carefully.
+> All remarks in the reviews need to be adressed carefully. The PC also
+> pointed out some issues in the paper which are summarized below and
+> should also be adressed carefully.
 
-* Section 3.1. As far as can be seen in Flint's documentation, this
-library does not provide support for sparse multivariate
-polynomials. How come that “Nemo uses Flint for multivariate
-polynomials over Z”?
+> * Section 3.1. As far as can be seen in Flint's documentation, this
+> library does not provide support for sparse multivariate
+> polynomials. How come that "Nemo uses Flint for multivariate
+> polynomials over Z"�?
 
-The status of Flint in all this section is not clear at all. What is exactly
-“Flint (asm)”? What functions provided by Flint are used?
+The library currently supplies this for Nemo only. We are still working on a
+general C interface in the Flint library itself. However, the experimental
+module (fmpz_mpoly) is accessible in the Flint repository.
 
-* Section 4. This part is very bizarre. It describes with a long unstructured
-clumsy prose the algorithm used to compute minimal polynomials of matrices.
-There is no reference, we don't know what is a contribution, what is already
-known. The word “termination” is systematically used to mean “correctness”.
+> The status of Flint in all this section is not clear at all. What is exactly
+> "Flint (asm)"�? What functions provided by Flint are used?
 
-Specifically:
+We have added a description of what the various implementations refer to. The
+functionality is in the fmpz_mpoly module, and the timings were obtained with
+various optimisations turned on or off in the Flint code itself, during
+development. The fastest version in each case represents the current code.
 
-- cite properly Danilevsky
+> * Section 4. This part is very bizarre. It describes with a long unstructured
+> clumsy prose the algorithm used to compute minimal polynomials of matrices.
 
-- “However, a proof of termination can also be given as follows." Termination
-is obvious, you want to prove *correctness*. Moreover, why “also”? So far
-you gave no proofs of anything.
+We have completely rewritten this section in a more standard style.
 
-- “We prefer to stop as soon as the Chinese remaindering stabilises, but we
-need a proof of termination.” Again, termination is obvious but correctness
-is not. And actually, what you need is not a proof of correctness (because
-the algorithm is not correct as is) but a better criterion to know when to
-stop (which you provide in the next paragaph ideed).
+> There is no reference, 
 
-- “this requires taking powers of the matrix M , which requires O(n^4)
-operations over Z in total.“ It does not *require* O(n^4) operations.
-Firstly, it is meaningless to state a lower bound in terms of a big-oh, and
-secondly, a basic baby-step-giant-step algorithm is able to evaluate a
-degree n polynomial of a n by n matrix in O(sqrt(n)) matrix multiplications,
-that is O(n^(3+1/2)) operations in the base ring.
+We have now supplied a number of references to the existing work (except for the
+Magma algorithm, which is apparently not published).
 
-- "On the average, it is relatively cheap to compute f(M) v_i.” Relatively
-with respect to what? When you consider the average case, what are the
-random variables? with which distribution? Do you mean “in the generic
-case”?
+> we don't know what is a contribution, 
 
+We have now clearly delineated what is our contribution.
+
+> what is already
+> known. 
+
+We have now clearly delineated what is standard material and given a reference.
+
+> The word "termination"� is systematically used to mean "correctness"�.
+
+All references to "proof of termination" have been replaced with "termination
+criterion" and we have made clear that this refers to termination of the CRT
+with guarantee of correct output.
+
+> Specifically:
+
+> - cite properly Danilevsky
+
+We have added the citation supplied by the referee.
+
+> - "However, a proof of termination can also be given as follows." Termination
+> is obvious, you want to prove *correctness*. 
+
+This has been corrected (see above).
+
+> Moreover, why "also"�? So far
+> you gave no proofs of anything.
+
+This has been re-worded.
+
+> - "We prefer to stop as soon as the Chinese remaindering stabilises, but we
+> need a proof of termination."� Again, termination is obvious but correctness
+> is not. 
+
+See above.
+
+> And actually, what you need is not a proof of correctness (because
+> the algorithm is not correct as is) but a better criterion to know when to
+> stop (which you provide in the next paragaph ideed).
+
+Indeed, we have now done precisely this.
+
+> - "this requires taking powers of the matrix M , which requires O(n^4)
+> operations over Z in total." It does not *require* O(n^4) operations.
+> Firstly, it is meaningless to state a lower bound in terms of a big-oh, and
+> secondly, a basic baby-step-giant-step algorithm is able to evaluate a
+> degree n polynomial of a n by n matrix in O(sqrt(n)) matrix multiplications,
+> that is O(n^(3+1/2)) operations in the base ring.
+
+We have completely removed the errant claim.
+
+> - "On the average, it is relatively cheap to compute f(M) v_i."� Relatively
+> with respect to what? When you consider the average case, what are the
+> random variables? with which distribution? Do you mean "in the generic
+> case"�?
+
+We did in fact mean "generic case". We have reworded this more carefully.
