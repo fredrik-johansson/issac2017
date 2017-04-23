@@ -201,7 +201,7 @@ AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
 > * Section 3.1. As far as can be seen in Flint's documentation, this
 > library does not provide support for sparse multivariate
 > polynomials. How come that "Nemo uses Flint for multivariate
-> polynomials over Z"?
+> polynomials over Z"?
 
 The Flint library currently supplies this for Nemo only. We are still working on
 a general C interface in the Flint library itself. This will be documented when it
