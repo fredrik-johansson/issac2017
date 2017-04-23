@@ -1,3 +1,11 @@
+Below, we detail our changes in response to the reviewer comments.
+
+In addition to the changes discussed below, we have made various minor edits
+to save vertical space in order to meet the page limit. These edits include
+merging paragraphs, reducing the font size of code samples and the bibliography,
+reducing table spacing, and making slight changes to wording.
+
+
 ----------------------- REVIEW 1 ---------------------
 PAPER: 15
 TITLE: Nemo/Hecke: computer algebra and number theory packages for the Julia programming language
@@ -31,11 +39,15 @@ AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
 > - line 8 (also in Section 3.3) of right column: "Nemo-0.4" should be "Nemo 0.4"? (as we see the
 > version Sage and Magma, there is no hyphen).
 
+The above typographical issues have been fixed.
+
 > p.4
 
 > - (*optional) In Section 4.2: "well-known 1937 method" seems not trivial. it is perhaps better
 > to cite:
 > "The numerical solution of the secular equation (Russian), Matem. Sbornik, 44(2), 1937."
+
+We have added this reference.
 
 > p.5
 
@@ -43,17 +55,27 @@ AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
 > "W. Bosma, J. Cannon and C. Playoust, The Magma algebra system. I. The user language, Journal
 > of Symbolic Computation, 24 (1997), pp.235-265."
 
+We have opted instead to correct the Magma citation to the proper version
+of the Handbook of Magma Functions.
+
 > p.6
 
 > - left column: sometimes "is a S-normal" are appeared. They must be "is an S-normal".
 
+This has been fixed.
+
 > p.7
 
 > - Table 3: Is there any reason not to include the data using SageMath?
+
+It is our understanding that Sage just uses Pari.
+
 > - In Section 6.2.3, "simple pole at 1" should be "simple pole at s=1" (because it is more
 > clear for number theorists).
 > - (*optional) In Section 6.2.3, "res" may be changed to "Res" in order to avoid confusion 
 > with "reg" (regulator).
+
+These changes have been made.
 
 ---
 
@@ -84,11 +106,19 @@ AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
 > the authors state what license they are using, whether they think they will continue supporting the
 > license in the long run, and what policy they apply to contributions.
 
+We have added a footnote about the license in the introduction.
+
 > 2. The abstract and introduction mention Singular, but nowhere in the text it is specified how
 > Nemo/Hecke use it. Could the authors be more specific on this?
 
+A brief mention of the Singular interface has been added in section 5.
+Due to space limitations, we have chosen to leave a detailed presentation
+of the Singular interface to a future article.
+
 > 3. In tables 1 and 2, it is not clear to me whether Flint is being called via Nemo, or directly. 
 > And how is the assembly-optimized version of Flint called? Is it accessible via Nemo?
+
+We have added a footnote clarifying this. 
 
 > Here's some typos I have spotted:
 
@@ -104,6 +134,7 @@ AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
 
 > page6, col2: WE have developed a new algorithm that manages it
 
+We have corrected these typos, and changed "traces" to "Newton sums" as suggested.
 
 > Finally, may I suggest that the authors be nominated or nominate themselves to the next edition
 > of the SIGSAM Jenks prize? https://www.sigsam.org/Awards/
@@ -285,3 +316,4 @@ We have completely removed the errant claim.
 > case"?
 
 We did in fact mean "generic case". We have reworded this more carefully.
+
