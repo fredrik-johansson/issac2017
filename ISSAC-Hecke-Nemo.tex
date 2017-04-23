@@ -350,7 +350,7 @@ $n$ & Sage- & Magma & Nemo & Flint & Flint & Flint & Giac \\
 By default, Nemo uses Flint for multivariate polynomials
 over $R = \ZZ$ instead of the generic
 Julia code~\footnote{The new Flint type \texttt{fmpz\_mpoly} is presently available in the git version of Flint.
-The \texttt{mul\_johnson} (with and without asm parts enabled) and \texttt{mul\_array} methods were timed.}.
+The \texttt{mul\_johnson} (with and without asm enabled) and \texttt{mul\_array} methods were timed via Nemo.}.
 We have timed both versions here
 to provide a comparison between Julia and C.
 It is somewhat remarkable that the generic Julia code comes
