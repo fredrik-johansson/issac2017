@@ -59,17 +59,17 @@
 \alignauthor Claus Fieker\\
    \affaddr{TU Kaiserslautern}\\
    \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
-   \affaddr{67653 Kaiserslautern, Germany}\\
+   \affaddr{\mbox{67653 Kaiserslautern, Germany}}\\
    \email{fieker@mathematik.uni-kl.de}
 \alignauthor William Hart\\
    \affaddr{TU Kaiserslautern}\\
    \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
-   \affaddr{67653 Kaiserslautern, Germany}\\
+   \affaddr{\mbox{67653 Kaiserslautern, Germany}}\\
    \email{goodwillhart@gmail.com}
 \alignauthor Tommy Hofmann\\
    \affaddr{TU Kaiserslautern}\\
    \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
-   \affaddr{67653 Kaiserslautern, Germany}\\
+   \affaddr{\mbox{67653 Kaiserslautern, Germany}}\\
    \email{thofmann@mathematik.uni-kl.de}
 \and
 \alignauthor Fredrik Johansson\\
@@ -99,10 +99,11 @@ arithmetic.
 
 \section{Introduction}
 
-Nemo\footnote{\url{http://nemocas.org}} is a computer algebra package for the Julia programming language.
+Nemo\footnote{\url{http://nemocas.org}. Nemo and Hecke are BSD licensed.} is a  computer algebra package for the Julia programming language.
 The eventual aim is
 to provide highly performant commutative algebra, number theory, group theory and discrete
 geometry routines.
+Hecke is a Julia package that builds on Nemo to cover algebraic number theory.
 
 Nemo consists of two parts: wrappers of specialised C/C++
 libraries (Flint \cite{flint}, Arb \cite{arb}, Antic \cite{antic} and Singular
@@ -112,8 +113,6 @@ structures in the Julia language. So far the fully recursive, generic constructi
 univariate and multivariate
 polynomial rings, power series rings, residue rings (modulo principal ideals),
 fraction fields, and matrices.
-
-Hecke is a Julia package that builds on Nemo to cover algebraic number theory.
 
 We demonstrate
 that Julia is effective for implementing high performance computer
@@ -209,12 +208,10 @@ good model.
 As an example, consider the ring $R = \mathbb{Z}/n\mathbb{Z}$. If we were to model the ring $R$
 as a type, then the type would need to contain information about the modulus $n$. This is not
 possible in Julia if $n$ is an object, e.g.\ a multiprecision integer.
-
-Putting such information in types is also not desirable. Julia dispatches on type, and each time
+Further, Julia dispatches on type, and each time
 we call a generic function with values of a new type, the function is recompiled by the
 JIT compiler for that new type. This would result in very poor performance if we were writing a
 multimodular algorithm, say, as recompilation would be triggered for each distinct modulus $n$.
-
 For this reason, the modulus $n$ needs to be attached to the elements of the ring, not to the type
 associated with those elements.
 
@@ -352,7 +349,7 @@ $n$ & Sage- & Magma & Nemo & Flint & Flint & Flint & Giac \\
 
 By default, Nemo uses Flint for multivariate polynomials
 over $R = \ZZ$ instead of the generic
-Julia code.
+Julia code~\footnote{The new Flint type \texttt{fmpz\_mpoly} is presently available in the git version of Flint.}.
 We have timed both versions here
 to provide a comparison between Julia and C.
 It is somewhat remarkable that the generic Julia code comes
@@ -526,15 +523,14 @@ to remove the common factor.
 \subsubsection{Minimal polynomial}
 
 Next we describe an algorithm we have implemented for efficient
-computation of minimal polynomial of an $n\times n$ integer matrix $M$.
-
+computation of the minimal polynomial of an $n\times n$ integer matrix $M$.
 A standard approach to this problem is known as ``spinning'' \cite{steel}.
 We provide a brief summary of the main ideas, to fix notation and then
 describe our contribution, which is a variant making use of Chinese
 remaindering in a provably correct way.
 
 We first summarise the theory for matrices over a field~$K$. The theory
-relies of the following result, e.g. \cite{vinberg}.
+relies on the following result, e.g.\ \cite{vinberg}.
 
 \begin{theorem}
 Suppose $M$ is a linear operator on a $K$-vector space $V$, and that
@@ -557,7 +553,6 @@ Start with $v_1 = e_1 = (1, 0, \ldots, 0)$ and let $W_1 = K(V, v_1)$.
 For each $i > 1$ let $v_i$ be the first standard basis vector $e_j$ that is
 linearly independent of $W_1 + W_2 + \cdots + W_{i-1}$. Set
 $W_i = K(V, v_i)$. 
-
 By construction, $V = W_1 + W_2 + \cdots + W_n$, and the minimal polynomial
 of $M$ is the least common multiple of the minimal polynomials $m_i$ of
 $M$ restricted to the $W_i$.
@@ -568,21 +563,20 @@ there is a linear relation
 $$M^dv + c_{d-1}M^{d-1}v + \cdots + c_1Mv + c_0v = 0,$$
 for some $c_i \in K$, and no smaller such relation. Letting
 $$m_i(T) = c_0 + c_1T + \cdots + T^d,$$ we have $m_i(M)(v) = 0$.
-
-It is easy to see that $m_i(M)(f(M)v) = 0$ for all polynomials $f(T) \in K[T]$
+One sees that $m_i(M)(f(M)v) = 0$ for all polynomials $f(T) \in K[T]$
 and so $m_i(M)$ annihilates all of $W_i$. Thus $m_i$ is the required
 minimal polynomial. 
  
-To efficiently implement the above algorithm, we keep track of and
+To efficiently implement this algorithm, we keep track of and
 (incrementally) reduce a matrix $B$ whose rows consist of all the
 linearly independent vectors from the Krylov sequences computed so far.
 Any column without a pivot in this reduced matrix $B$ corresponds to a
-standard basis vector which is independent of the Krylov subspaces computed
+standard basis vector independent of the Krylov subspaces computed
 so far. As each new Krylov subspace is computed, we append the corresponding
 vectors to the matrix $B$, and reduce them.
 
 It is also possible to define the minimal polynomial of a matrix $M$ over
-$\mathbb{Z}$. This is due to the fact that the null ideal of a matrix $M$ over
+$\mathbb{Z}$, since the null ideal of a matrix $M$ over
 an integrally closed domain $D$ is principal (see \cite{brown}).
 
 In the case $D = \mathbb{Z}$, we can define the minimal polynomial $m(T)$ of $M$
@@ -600,7 +594,6 @@ we have been unable to find a publication outlining their method.
 We describe a multimodular variant of the spinning approach. The idea is to
 reduce the matrix $M$ modulo many small primes $p$ and apply the method
 described above over the field $\mathbb{Z}/p\mathbb{Z}$, for each prime $p$.
-
 We then combine the minimal polynomials modulo the various primes $p$ using
 Chinese remaindering.
 
@@ -644,7 +637,6 @@ the minimal polynomial is not the characteristic polynomial.
 In practice our multimodular algorithm seems to slightly outperform Magma on the
 examples we have tried, including matrices with minimal polynomial smaller 
 than the characteristic polynomial.
-
 A generic version of the algorithm over fields is implemented in Julia code in
 Nemo, and an efficient version over $\mathbb{Z}$ using the Chinese remaindering
 trick is implemented in Flint and made available in Nemo.
@@ -732,7 +724,7 @@ refer the reader to the article \cite{antic} for full details.
 
 Antic represents number field elements as Flint polynomials thereby benefiting
 from the highly optimised polynomial arithmetic in Flint. However, a few
-additional tricks are used.
+more tricks are used.
 
 Firstly, Antic makes a number of precomputations which are stored in a context
 object to speed up subsequent computations with number field elements. Number field parent
