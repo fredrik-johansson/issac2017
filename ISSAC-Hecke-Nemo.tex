@@ -607,7 +607,7 @@ Chinese remaindering.
 The minimal polynomial of the reduction $M_{(p)}$ of $M$ modulo $p$ is the
 reduction modulo $p$ of the minimal polynomial $m(T)$ of $M$ for all but
 finitely many ``bad'' primes (see \cite{giesbrecht} Lemma 2.3). Bad primes
-are detected if the degrees of the minimal polynomials modulo $p$ rise at
+are detected if the degrees of the minimal polynomials modulo $p$ change at
 any point during the algorithm.
 
 Whilst bounds on the number of primes required in the Chinese remaindering
@@ -637,9 +637,9 @@ Note that the cost of computing the $m(M)v'_i$ for all $i$ is usually very low
 compared to computing $m(M)$ directly, since it consists of matrix-vector
 operations rather than expensive matrix-matrix multiplications.
 
-In the worst case this algorithm requires $O(n^4)$ operations over $\mathbb{Z}$,
-but this is far from the generic case, even when the minimal polynomial is not
-the characteristic polynomial.
+In the worst case this algorithm requires $O(n^4)$ operations over $\mathbb{Z}$
+(once we encounter a good prime), but this is far from the generic case, even when
+the minimal polynomial is not the characteristic polynomial.
 
 In practice our multimodular algorithm seems to slightly outperform Magma on the
 examples we have tried, including matrices with minimal polynomial smaller 
