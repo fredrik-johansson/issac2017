@@ -576,8 +576,8 @@ so far. As each new Krylov subspace is computed, we append the corresponding
 vectors to the matrix $B$, and reduce them.
 
 It is also possible to define the minimal polynomial of a matrix $M$ over
-$\mathbb{Z}$, since the null ideal of a matrix $M$ over
-an integrally closed domain $D$ is principal (see \cite{brown}).
+$\mathbb{Z}$, since the null ideal $N_D(M) = \{f(T) \in D[T] \;|\; f(M) = 0\}$ of a
+matrix $M$ over an integrally closed domain $D$ is principal (see \cite{brown}).
 
 In the case $D = \mathbb{Z}$, we can define the minimal polynomial $m(T)$ of $M$
 to be a (primitive) generator of this ideal. We have that $m(T)$ is monic since
@@ -755,10 +755,12 @@ products are first accumulated and their sum can be reduced at the end of the do
 To facilitate delayed reduction, all Antic number field elements are allocated with
 sufficient space to store a full polynomial product, rather than the reduction of such a product.
 
+\newpage
+
 \subsection{Singular: commutative algebra}
 
-Singular \cite{singular} is a C/C++ package for commutative algebra, polynomial systems and algebraic
-geometry. Recently, we have helped prepare a Julia package called Singular.jl, which is compatible with
+Singular \cite{singular} is a C/C++ package for polynomial systems and algebraic
+geometry. Recently, we helped prepare a Julia package called Singular.jl, which is compatible with
 Nemo. It will be described in a future article.
 
 \section{Hecke: algebraic number theory in Julia}
@@ -1046,14 +1048,14 @@ Since the radii of the balls tend to $0$, by Lemma~\ref{lem:tor} the algorithm w
 For a number field $K$ and $s \in \CC$, $\operatorname{Re}(s) > 1$, the Dedekind zeta function of $K$ is defined as
 \[ \zeta_K(s) = \sum_{\{0\} \neq I \subseteq \mathcal O_K} \frac 1 {N(I)^s}, \]
 where the sum is over all nonzero ideals of the ring of integers $\mathcal O_K$ of $K$.
-This function has an analytic continuation to the whole complex plane with a simple pole at $s = 1$. The celebrated analytic class number formula
-(see~\cite{Cohen1993}) states that the residue at that pole encodes important arithmetic data of $K$:
+This function has an analytic continuation to the whole complex plane with a simple pole at $s = 1$. The analytic class number formula
+\cite{Cohen1993} states that the residue at that pole encodes important arithmetic data of $K$:
 \[ \operatorname{Res}(\zeta_K, 1) =\lim_{s \to 1}(s - 1)\zeta_K(s) = h_K \cdot \mathrm{reg}_K \cdot c_K, \]
 where $h_K$ is the class number, $\mathrm{reg}_K$ is the regulator and $c_K$ is another (easy to determine) constant depending on $K$.
 
-As well as being an intriguing theoretical result, it is also an important tool during class group computations.
-By approximating the residue, the class number formula allows one to certify that tentative class and unit groups are in fact
-correct (see \cite{Biasse2014}).
+The analytic class number formula is an important tool during class group
+computations. By approximating the residue, it allows one to certify that
+tentative class and unit groups are in fact correct (see \cite{Biasse2014}).
 
 We describe the approximation under GRH using an algorithm of Belabas and Friedmann~\cite{Belabas2015}, but it is also possible with
 results from Schoof~\cite{Schoof1982} or Bach~\cite{Bach1995}.
@@ -1110,7 +1112,7 @@ J.-F.~Biasse, C.~Fieker,
 
 \bibitem{magma}
 W.~Bosma, J.~J.~Cannon, C. Fieker, A. Steel (Eds.), {\em Handbook of Magma Functions}, 
-Edition 2.22 (2016), 5874 pages.
+Edition 2.22 (2016).
 
 \bibitem{brown}
 W.~Brown, {\em Null ideals and spanning ranks of matrices}, Comm. Algebra 26, (1998), pp. 2401--2417.
