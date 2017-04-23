@@ -149,8 +149,8 @@ AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
 > the submission.
 
 > Why do the author's avoid citing any work on Wiedemann-style Krylov space linear algebra algorithms 
-> and their derivatives, such as algorithms for the Frobenius normal > form of a matrix, which yield 
-> the minimal polynomial?  
+> and their derivatives, such as algorithms for the Frobenius normal 
+> form of a matrix, which yield the minimal polynomial?  
 
 We have now cited one algorithm of Giesbrecht and Storjohann for computation of the Frobenius rational 
 form. However, due to space limitations, we are unable to exhibit a complete literature survey.
@@ -209,7 +209,7 @@ is complete. However, the experimental module (fmpz_mpoly) is still public and
 accessible in the Flint repository.
 
 > The status of Flint in all this section is not clear at all. What is exactly
-> "Flint (asm)"? What functions provided by Flint are used?
+> "Flint (asm)"? What functions provided by Flint are used?
 
 We have added a description of what the various implementations refer to. The
 functionality is in the fmpz_mpoly module, and the timings were obtained with
@@ -236,7 +236,7 @@ We have now clearly delineated what is our contribution.
 
 We have now clearly delineated what is standard material and given a reference.
 
-> The word "termination" is systematically used to mean "correctness".
+> The word "termination" is systematically used to mean "correctness".
 
 All references to "proof of termination" have been replaced with "termination
 criterion" and we have made clear that this refers to termination of the CRT
@@ -253,13 +253,13 @@ We have added the citation supplied by the referee.
 
 This has been corrected (see above).
 
-> Moreover, why "also"? So far
+> Moreover, why "also"? So far
 > you gave no proofs of anything.
 
 This has been re-worded.
 
 > - "We prefer to stop as soon as the Chinese remaindering stabilises, but we
-> need a proof of termination." Again, termination is obvious but correctness
+> need a proof of termination." Again, termination is obvious but correctness
 > is not. 
 
 This has been corrected (see above).
@@ -279,9 +279,9 @@ Indeed, we have now taken precisely this approach in the revised text.
 
 We have completely removed the errant claim.
 
-> - "On the average, it is relatively cheap to compute f(M) v_i." Relatively
+> - "On the average, it is relatively cheap to compute f(M) v_i." Relatively
 > with respect to what? When you consider the average case, what are the
 > random variables? with which distribution? Do you mean "in the generic
-> case"?
+> case"?
 
 We did in fact mean "generic case". We have reworded this more carefully.
