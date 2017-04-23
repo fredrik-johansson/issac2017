@@ -1,0 +1,195 @@
+----------------------- REVIEW 1 ---------------------
+PAPER: 15
+TITLE: Nemo/Hecke: computer algebra and number theory packages for the Julia programming language
+AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
+
+
+----------- Overall evaluation -----------
+This paper presents a new package on computational (algebraic) number theory. I think this activity gives us new ways to implement several basic algorithms to achieve computational trials. Especially, using Julia language seems good not only to compute faster than ordinals but also to get new ways to write several codes on algebraic and number theoretic objects. Also, this package, Nemo and Hecke are already available from the author's presented webpage thus it is very easy to recheck performances that the paper mentioned.
+
+I hope that Nemo and Hecke must be more comfortable to execute more (basic and a few advanced) algorithms to compute lots of objects easily in the near future. More competition (benchmarks) data must be presented on their website.
+
+The following comments may be probably checked for improving this paper:
+
+---
+
+p.2
+
+- line 3 of left column "T say": T must be italic.
+- line 7 of left column: "64 bit" should be "64-bit" because in Section 5.2, "53-bit" is appeared thus they must be unified.
+
+p.3
+
+- line 8 (also in Section 3.3) of right column: "Nemo-0.4" should be "Nemo 0.4"? (as we see the version Sage and Magma, there is no hyphen).
+
+p.4
+
+- (*optional) In Section 4.2: "well-known 1937 method" seems not trivial. it is perhaps better to cite:
+ "The numerical solution of the secular equation (Russian), Matem. Sbornik, 44(2), 1937."
+
+p.5
+
+- Citation of [6] (Magma) must be changed to:
+ "W. Bosma, J. Cannon and C. Playoust, The Magma algebra system. I. The user language, Journal of Symbolic Computation, 24 (1997), pp.235-265."
+
+p.6
+
+- left column: sometimes "is a S-normal" are appeared. They must be "is an S-normal".
+
+p.7
+
+- Table 3: Is there any reason not to include the data using SageMath?
+- In Section 6.2.3, "simple pole at 1" should be "simple pole at s=1" (because it is more clear for number theorists).
+- (*optional) In Section 6.2.3, "res" may be changed to "Res" in order to avoid confusion with "reg" (regulator).
+
+---
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 15
+TITLE: Nemo/Hecke: computer algebra and number theory packages for the Julia programming language
+AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
+
+
+----------- Overall evaluation -----------
+Disclaimer: I am a big fan of Nemo/Hecke. It is not every day that we see a new solid, well engineered, open souce computer algebra system, and that's everything Nemo/Hecke is. This new CAS is highly relevant to the ISSAC community, and its impact extends well beyond the present paper.
+
+This paper introduces the computer algebra system Nemo/Hecke, written in the programming language Julia, on top of C/C++ libraries Flint, Arb, Antic and Singular. The paper introduces the Nemo/Hecke data model, presents benchmarks (highlighting impressive speedups compared to the state of the art), and then discusses some algorithms implemented in it, including new variants of classic algorithms not found in the literature.
+
+The paper is well written and flows smoothly. Its contents are extremely relevant to the community, and will be of interest to any ISSAC attendee. I strongly recommend accepting it.
+
+I only have a few minor comments.
+
+1. There is no mention of the software license attached to Nemo/Hecke. I think it is important that the authors state what license they are using, whether they think they will continue supporting the license in the long run, and what policy they apply to contributions.
+
+2. The abstract and introduction mention Singular, but nowhere in the text it is specified how Nemo/Hecke use it. Could the authors be more specific on this?
+
+3. In tables 1 and 2, it is not clear to me whether Flint is being called via Nemo, or directly. And how is the assembly-optimized version of Flint called? Is it accessible via Nemo?
+
+Here's some typos I have spotted:
+
+page5, col2:
+- However, a few additional tricks ARE used.
+- "The third precomputation is of traces..." Aren't this more often called "Newton sums"?
+
+page6, col1: "We remark that one operation was" -> is
+
+Theorem 1, item1: A full stop is missing.
+
+Theorem 1, item3: be -> by
+
+page6, col2: WE have developed a new algorithm that manages it
+
+
+Finally, may I suggest that the authors be nominated or nominate themselves to the next edition of the SIGSAM Jenks prize? https://www.sigsam.org/Awards/
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 15
+TITLE: Nemo/Hecke: computer algebra and number theory packages for the Julia programming language
+AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
+
+
+----------- Overall evaluation -----------
+The authors developed two new packages, Nemo and Hecke with Julia language. Julia is a modern programming language, which is specialized to high-level and high-performance for  numerical computing.
+
+The authors politely described the reasons and merits of using Julia language for implementations of their packages.
+
+With benchmarks and sample codes, they showed the superiority of their packages for researching number theory.
+I look forward to the future development of  them.
+
+
+----------------------- REVIEW 4 ---------------------
+PAPER: 15
+TITLE: Nemo/Hecke: computer algebra and number theory packages for the Julia programming language
+AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
+
+
+----------- Overall evaluation -----------
+Following Mohab's request, I put this review in the comments.
+
+
+----------------------- REVIEW 5 ---------------------
+PAPER: 15
+TITLE: Nemo/Hecke: computer algebra and number theory packages for the Julia programming language
+AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
+
+
+----------- Overall evaluation -----------
+> I am only commenting on Section 4, and therefore give a neutral rating.  Section 6 is the heart of the submission.
+
+> Why do the author's avoid citing any work on Wiedemann-style Krylov space linear algebra algorithms and their derivatives, such as algorithms for the Frobenius normal > form of a matrix, which yield the minimal polynomial?  
+
+We have now cited one algorithm of Giesbrecht and Storjohann for computation of the Frobenius rational form. However, due to space limitations, we are unable to exhibit a complete literature survey.
+ 
+> They have adopted the approach and mention the old Berkowitz algorithms, but no modern determinant 
+> algorithms.  
+
+There are indeed better algorithms in some cases. However, we require algorithms that are generic enough for all the different rings Nemo has to handle, and able to be implemented given the primitives we have available for all those rings. Moreover, some determinant algorithms are simply theoretical improvements on complexity only. They aren't necessarily practical. 
+
+However, in general, we agree with the reviewer that there are many other algorithms we could implement in specific rings. There's always an infinite amount of work that remains to be done in a CAS!
+
+> I am doubtful that fast exact dense linear algebra can be achieved without the use of BLAS libraries, as is done by the LinBox library.  When implementing 
+> high level algebraic number algorithms, I guess linear algebra has to give.
+
+We haven't made any comments about BLAS in this paper. Flint doesn't currently use BLAS, though we have made attempts in the past to change this. But often when doing number theory, one gets to choose the primes that occur in multimodular algorithms, and BLAS isn't the only possibility (see for example the SIMD algorithms of the Mathemagix people for reduction modulo p). On the other hand, Julia makes extensive use of BLAS, and we have the option of doing future optimisation using BLAS, if appropriate.
+
+>I understand that FLINT is a competitor of NTL.  I find NTL in the reference list [24] but not cited in the text.
+
+We have removed the orphan citation of NTL.
+
+> Again, this is not a full review of the submission.
+
+----------------------- REVIEW 6 ---------------------
+PAPER: 15
+TITLE: Nemo/Hecke: computer algebra and number theory packages for the Julia programming language
+AUTHORS: Claus Fieker, William Hart, Tommy Hofmann and Fredrik Johansson
+
+
+----------- Overall evaluation -----------
+*** This is NOT a review but a summary of the expectations of the
+PC for the paper to get accepted ***
+
+All remarks in the reviews need to be adressed carefully. The PC also
+pointed out some issues in the paper which are summarized below and
+should also be adressed carefully.
+
+* Section 3.1. As far as can be seen in Flint's documentation, this
+library does not provide support for sparse multivariate
+polynomials. How come that “Nemo uses Flint for multivariate
+polynomials over Z”?
+
+The status of Flint in all this section is not clear at all. What is exactly
+“Flint (asm)”? What functions provided by Flint are used?
+
+* Section 4. This part is very bizarre. It describes with a long unstructured
+clumsy prose the algorithm used to compute minimal polynomials of matrices.
+There is no reference, we don't know what is a contribution, what is already
+known. The word “termination” is systematically used to mean “correctness”.
+
+Specifically:
+
+- cite properly Danilevsky
+
+- “However, a proof of termination can also be given as follows." Termination
+is obvious, you want to prove *correctness*. Moreover, why “also”? So far
+you gave no proofs of anything.
+
+- “We prefer to stop as soon as the Chinese remaindering stabilises, but we
+need a proof of termination.” Again, termination is obvious but correctness
+is not. And actually, what you need is not a proof of correctness (because
+the algorithm is not correct as is) but a better criterion to know when to
+stop (which you provide in the next paragaph ideed).
+
+- “this requires taking powers of the matrix M , which requires O(n^4)
+operations over Z in total.“ It does not *require* O(n^4) operations.
+Firstly, it is meaningless to state a lower bound in terms of a big-oh, and
+secondly, a basic baby-step-giant-step algorithm is able to evaluate a
+degree n polynomial of a n by n matrix in O(sqrt(n)) matrix multiplications,
+that is O(n^(3+1/2)) operations in the base ring.
+
+- "On the average, it is relatively cheap to compute f(M) v_i.” Relatively
+with respect to what? When you consider the average case, what are the
+random variables? with which distribution? Do you mean “in the generic
+case”?
+
