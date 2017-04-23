@@ -173,9 +173,9 @@ in a CAS!
 
 We haven't made any comments about BLAS in this paper. Flint doesn't currently use BLAS, though we
 have made attempts in the past to change this. But often when doing number theory, one gets to choose
-the primes that occur in multimodular algorithms, and BLAS isn't the only possibility (see for example
-the SIMD algorithms of the Mathemagix people for reduction modulo p). On the other hand, Julia makes
-extensive use of BLAS, and we have the option of doing future optimisation using BLAS, if appropriate.
+the primes that occur in multimodular algorithms, and BLAS isn't the only possibility. On the other
+hand, Julia makes extensive use of BLAS, and we have the option of doing future optimisation using 
+BLAS, if appropriate.
 
 >I understand that FLINT is a competitor of NTL.  I find NTL in the reference list [24] but not cited
 > in the text.
