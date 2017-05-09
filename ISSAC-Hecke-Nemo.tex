@@ -1,18 +1,35 @@
-\documentclass{sig-alternate-05-2015}
+\documentclass[sigconf]{acmart}
 \usepackage{paralist}
 \usepackage{url}
 \usepackage{hyperref}
 \DeclareMathOperator{\lcm}{lcm}
 
-\begin{document}
 \setcopyright{acmcopyright}
-\conferenceinfo{ISSAC 2017}{July 25--28, 2017, Kaiserslautern, Germany}
+\copyrightyear{2017}
+\acmYear{2017}
+%\conferenceinfo{ISSAC '17}{July 25--28, 2017}{Kaiserslautern, Germany}
+\acmConference[ISSAC'17]{The 42nd International Symposium on Symbolic and Algebraic Computation}{July 25--28, 2017}{Kaiserslautern, Germany} 
+\acmPrice{15.00}
+\acmDOI{http://dx.doi.org/10.1145/XXXXXXX.XXXXXXX}
+\acmISBN{978-1-4503-5064-8/17/07}
+%Authors, replace the red X's with your assigned DOI string. See pdf attached to ACM rightsreview confirmation email.
 
-\newtheorem{alg}{Algorithm}
-\newtheorem{definition}{Definition}
-\newtheorem{lemma}{Lemma}
-\newtheorem{theorem}{Theorem}
-\newtheorem{Assertion}{Assertion}
+\clubpenalty=10000
+\widowpenalty = 10000
+
+
+\begin{document}
+
+%\setcopyright{acmcopyright}
+%\conferenceinfo{ISSAC 2017}{July 25--28, 2017, Kaiserslautern, Germany}
+
+
+
+%\newtheorem{alg}{Algorithm}
+%\newtheorem{definition}{Definition}
+%\newtheorem{lemma}{Lemma}
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{Assertion}{Assertion}
 
 \providecommand{\QQ}{\mathbb{Q}}
 \providecommand{\ZZ}{\mathbb{Z}}
@@ -20,31 +37,6 @@
 \providecommand{\RR}{\mathbb{R}}
 \providecommand{\CC}{\mathbb{C}}
 
-% fix vskip when reducing the font size
-\makeatletter
-\def\thebibliographyy#1{% 
-\ifnum\addauflag=0\addauthorsection\global\addauflag=1\fi
-     \section[References]{%    <=== OPTIONAL ARGUMENT ADDED HERE
-        {References} % was uppercased but this affects pdf bookmarks (SP/GM October 2004)
-          {\vskip 0pt} % GM Nov. 2006 / GM July 2000 (for somewhat tighter spacing) 
-         \@mkboth{{\refname}}{{\refname}}%
-     }%
-     \list{[\arabic{enumi}]}{%
-         \settowidth\labelwidth{[#1]}%
-         \leftmargin\labelwidth
-         \advance\leftmargin\labelsep
-         \advance\leftmargin\bibindent
-         \parsep=0pt\itemsep=1pt % GM July 2000
-         \itemindent -\bibindent
-         \listparindent \itemindent
-         \usecounter{enumi}
-     }%
-     \let\newblock\@empty
-     \raggedright % GM July 2000
-     \sloppy
-     \sfcode`\.=1000\relax
-}
-\makeatother
 
 \makeatletter
 \def\Ddots{\mathinner{\mkern1mu\raise\p@
@@ -52,34 +44,73 @@
 \raise4\p@\hbox{.}\mkern2mu\raise7\p@\hbox{.}\mkern1mu}}
 \makeatother
 
-\title{Nemo/Hecke: computer algebra and number theory packages for the Julia programming language}
 
-\numberofauthors{4}
-\author{
-\alignauthor Claus Fieker\\
-   \affaddr{TU Kaiserslautern}\\
-   \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
-   \affaddr{\mbox{67653 Kaiserslautern, Germany}}\\
-   \email{fieker@mathematik.uni-kl.de}
-\alignauthor William Hart\\
-   \affaddr{TU Kaiserslautern}\\
-   \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
-   \affaddr{\mbox{67653 Kaiserslautern, Germany}}\\
-   \email{goodwillhart@gmail.com}
-\alignauthor Tommy Hofmann\\
-   \affaddr{TU Kaiserslautern}\\
-   \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
-   \affaddr{\mbox{67653 Kaiserslautern, Germany}}\\
-   \email{thofmann@mathematik.uni-kl.de}
-\and
-\alignauthor Fredrik Johansson\\
-   \affaddr{Inria Bordeaux \& Institut de}\\
-   \affaddr{Math\'{e}matiques de Bordeaux} \\
-   \affaddr{33400 Talence, France}\\
-   \email{fredrik.johansson@gmail.com}
+\title[Nemo/Hecke: Computer Algebra and Number Theory Packages for Julia]{Nemo/Hecke: Computer Algebra and Number Theory Packages for the Julia Programming Language}
+
+\author{Claus Fieker}
+\affiliation{%
+  \institution{TU Kaiserslautern}
+  \streetaddress{Fachbereich Mathematik, Postfach 3049}
+  \postcode{67653}
+  \city{Kaiserslautern} 
+  \country{Germany} 
 }
+\email{fieker@mathematik.uni-kl.de}
 
-\maketitle
+\author{William Hart}
+\affiliation{%
+  \institution{TU Kaiserslautern}
+  \streetaddress{Fachbereich Mathematik, Postfach 3049}
+  \postcode{67653}
+  \city{Kaiserslautern} 
+  \country{Germany} 
+}
+\email{goodwillhart@gmail.com}
+
+\author{Tommy Hofmann}
+\affiliation{%
+  \institution{TU Kaiserslautern}
+  \streetaddress{Fachbereich Mathematik, Postfach 3049}
+  \postcode{67653}
+  \city{Kaiserslautern} 
+  \country{Germany} 
+}
+\email{thofmann@mathematik.uni-kl.de}
+
+\author{Fredrik Johansson}
+\affiliation{%
+  \institution{Inria Bordeaux \& Institut de Math\'{e}matiques de Bordeaux}
+  \streetaddress{200 Avenue de la Vieille Tour}
+  \postcode{33400}
+  \city{Talence} 
+  \country{France} 
+}
+\email{fredrik.johansson@gmail.com}
+
+%\numberofauthors{4}
+%\author{
+%\alignauthor Claus Fieker\\
+%   \affaddr{TU Kaiserslautern}\\
+%   \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
+%   \affaddr{\mbox{67653 Kaiserslautern, Germany}}\\
+%   \email{fieker@mathematik.uni-kl.de}
+%\alignauthor William Hart\\
+%   \affaddr{TU Kaiserslautern}\\
+%   \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
+%   \affaddr{\mbox{67653 Kaiserslautern, Germany}}\\
+%   \email{goodwillhart@gmail.com}
+%\alignauthor Tommy Hofmann\\
+%   \affaddr{TU Kaiserslautern}\\
+%   \affaddr{Fachbereich Mathematik, Postfach 3049,}\\
+%   \affaddr{\mbox{67653 Kaiserslautern, Germany}}\\
+%   \email{thofmann@mathematik.uni-kl.de}
+%\and
+%\alignauthor Fredrik Johansson\\
+%   \affaddr{Inria Bordeaux \& Institut de}\\
+%   \affaddr{Math\'{e}matiques de Bordeaux} \\
+%   \affaddr{33400 Talence, France}\\
+%   \email{fredrik.johansson@gmail.com}
+%}
 
 \begin{abstract}
 We introduce two new packages, Nemo and Hecke, written in the Julia programming language
@@ -96,6 +127,7 @@ some algorithms that we have implemented to provide high performance basic
 arithmetic.
 \end{abstract}
 
+\maketitle
 
 \section{Introduction}
 
@@ -304,7 +336,7 @@ f*(f+1)
 \end{small}
 
 Table~\ref{tab:fateman} shows timing results compared to
-SageMath~7.4, Magma~V2.22-5 and Giac-1.2.2
+SageMath~7.4, Magma V2.22-5 and Giac-1.2.2
 on a 2.2~GHz AMD Opteron 6174.
 We used sparse multivariate polynomials in all
 cases (this benchmark could also be performed
@@ -331,8 +363,8 @@ so only the Johnson algorithm is used.
 \center
 \caption{Time (s) on the Fateman benchmark.}
 \begin{small}
-\setlength{\tabcolsep}{2.0pt}
-\renewcommand{\arraystretch}{1.05}
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{0.95}
 \begin{tabular}{c c c c c c c c} \hline
 $n$ & Sage- & Magma & Nemo & Flint & Flint & Flint & Giac \\ 
     &   Math    &       & (generic) & (no asm) & (asm) & (array) & \\ \hline
@@ -361,8 +393,8 @@ and even runs slightly faster than the C code in Magma.
 \center
 \caption{Time (s) on the Pearce benchmark.}
 \begin{small}
-\setlength{\tabcolsep}{2.0pt}
-\renewcommand{\arraystretch}{1.05}
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{0.95}
 \begin{tabular}{c c c c c c c} \hline
 $n$ & SageMath & Magma & Nemo & Flint & Flint & Giac \\ 
     &          &       & (generic) & (no asm) & (asm) & \\ \hline
@@ -380,7 +412,7 @@ $n$ & SageMath & Magma & Nemo & Flint & Flint & Giac \\
 
 \subsection{Generic resultant}
 
-The following example computes a resultant
+The following Nemo example code computes a resultant
 in the ring $((\operatorname{GF}(17^{11})[y])/(y^3 + 3xy + 1))[z]$,
 demonstrating generic recursive rings and polynomial
 arithmetic. Flint is used for univariate polynomials over a finite field.
@@ -877,7 +909,7 @@ If $0\ne\alpha\in \mathcal O_K$, then $\langle\alpha\rangle\cap \mathbb Z = \lan
 \end{lemma}
 
 \begin{theorem}[\cite{Pohst1997}]
-Let $A$ be a nonzero ideal. Then
+Let $A$ be a nonzero ideal. Then the tuple
 $(a, \alpha)$ is an $\{p \, | \, p \text{ divides }a\}$-normal presentation of $A$ if and only if
 $\gcd(a, {d}/{\gcd(a, d)}) = 1$, where $d = \min(\alpha\mathcal O_K \cap \NN)$.
 \end{theorem}
@@ -906,7 +938,7 @@ Times are given in seconds.
 \caption{Time (s) on ideal multiplication.}
 \begin{small}
 \setlength{\tabcolsep}{2.0pt}
-\renewcommand{\arraystretch}{1.08}
+\renewcommand{\arraystretch}{0.95}
 \begin{tabular}{c c c c} \hline
 $n$ & Magma & Pari & Hecke  \\ \hline
      16  &  8.44 & 0.05 & 0.02   \\
@@ -1081,7 +1113,7 @@ Again this yields a guaranteed result, but avoids the tedious error analysis due
 This work was supported by DFG priority project SPP 1489 and ERC Starting Grant ANTICS 278537.
 
 {\footnotesize
-\begin{thebibliographyy}{99}
+\begin{thebibliography}{99}
 
 \bibitem{Bach1995}
 E.~Bach,
@@ -1201,7 +1233,7 @@ E.~Vinberg, {\em A Course in Algebra}, American Mathematical Society, 2003, pp. 
 
 %\bibliographystyle{abbrv}
 %\bibliography{issac}
-\end{thebibliographyy}}
+\end{thebibliography}}
 
 \end{document}
 
