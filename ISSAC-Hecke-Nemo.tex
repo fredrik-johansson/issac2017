@@ -609,7 +609,7 @@ vectors to the matrix $B$, and reduce them.
 
 It is also possible to define the minimal polynomial of a matrix $M$ over
 $\mathbb{Z}$, since the null ideal $N_D(M) = \{f(T) \in D[T] \;|\; f(M) = 0\}$ of a
-matrix $M$ over an integrally closed domain $D$ is principal (see \cite{brown}).
+matrix $M$ over an integrally closed domain $D$ is principal \cite{brown}.
 
 In the case $D = \mathbb{Z}$, we can define the minimal polynomial $m(T)$ of $M$
 to be a (primitive) generator of this ideal. We have that $m(T)$ is monic since
@@ -848,7 +848,7 @@ A tuple $(a, \alpha)$ is an $S$-normal presentation for $A$ if and only if
 \setlength{\parskip}{0pt}
 \setlength{\parsep}{0pt}
 \item we have $a\in A\cap \mathbb Z$, $\alpha\in A$,
-\item for all prime ideals $Q$ lying over $p\not\in S$ we have $v_Q(a)= v_Q(A) = 0$
+\item for all prime ideals $Q$ over $p\not\in S$ we have $v_Q(a)= v_Q(A) = 0$
   for the exponential valuation $v_Q$ associated to $Q$,
 \item for all prime ideals $Q$ over $p\in S$ we have $v_Q(\alpha) = v_Q(A)$.
 \end{itemize}
@@ -1036,7 +1036,7 @@ For an algebraic number field $K$ of degree $d$, the set $\{ \alpha \in K^\times
 torsion units is a finite cyclic subgroup of $K^\times$, which plays an important role
 when investigating the unit group of the ring of integers of $K$.
 
-Given $\alpha \in K^\times$ it is important to quickly decide whether it is a torsion unit.
+Given $\alpha \in K^\times$ it is important to quickly check if it is a torsion unit.
 A list of possible integers $n$ with $\alpha^n = 1$ can be obtained as follows:
 If $\alpha$ is a torsion unit, then $\alpha$ is a primitive $k$-th root of unity for some $k$.
 In particular $K$ contains the $k$-th cyclotomic field and $\varphi(k)$ divides $n$.
@@ -1104,7 +1104,7 @@ Assume that $\varepsilon > 0$ and we want to find $z \in \RR$ such that
 We first compute an $x_0$ such that $\varepsilon_K(x_0) < \varepsilon/2$. Note that since $\varepsilon_K$ is strictly decreasing,
 this can be done using ordinary floating point arithmetic with appropriate rounding modes.
 Once we have this value we compute a real ball $B$ with $g_K(x_0) \in B$ and $\operatorname{diam}(B) \leq \varepsilon/2$ (as usual
-we progressively increase precision until the the radius of the ball is small enough).
+we progressively increase precision until the radius of the ball is small enough).
 By the choice of $x_0$, the midpoint of $B$ is an approximation to the logarithm of the residue with error at most $\varepsilon$.
 Again this yields a guaranteed result, but avoids the tedious error analysis due to the form of $g_K$.
 
